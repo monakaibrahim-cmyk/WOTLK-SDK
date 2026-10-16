@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "wotlk-sdk",
+  "version": "1.0.0",
+  "description": "Modern C and C++ Software Development Kit for World of Warcraft 3.3.5a (build 12340) with Discord Social SDK integration",
+  "homepage": "https://github.com/WotlkSDK/WotlkSDK",
+  "license": "MIT",
+  "dependencies": [
+    "discord-game-sdk"
+  ],
+  "features": {
+    "legacy-rpc": {
+      "description": "Include legacy discord-rpc library",
+      "dependencies": [
+        "discord-rpc"
+      ]
+    }
+  }
+}

@@ -29,6 +29,29 @@ target_link_libraries(
         shell32
 )
 
+# Discord Social SDK Linkage & DLL Deployment (via vcpkg)
+if (WOTLK_SDK_HAVE_DISCORD_GAME_SDK)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC WOTLK_SDK_HAS_DISCORD_GAME_SDK=1)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${DISCORD_GAME_SDK_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${DISCORD_GAME_SDK_LIB})
+    if (DISCORD_GAME_SDK_CPP_LIB)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${DISCORD_GAME_SDK_CPP_LIB})
+    endif()
+
+    find_file(DISCORD_GAME_SDK_DLL
+        NAMES discord_game_sdk.dll
+        PATH_SUFFIXES bin
+    )
+    if (DISCORD_GAME_SDK_DLL)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${DISCORD_GAME_SDK_DLL}"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+            COMMENT "Copying discord_game_sdk.dll to target directory"
+        )
+    endif()
+endif()
+
 target_compile_definitions(
     ${PROJECT_NAME} PRIVATE
         APP_NAME="${PROJECT_NAME}"

@@ -1,5 +1,13 @@
 #pragma once
 
+/**
+ * @file hookkit.h
+ * @brief Primary include header for HookKit / HOOK-KIT framework.
+ *
+ * Consolidates detours, trampolines, transaction management, calling convention descriptors,
+ * site hooks, and wild register ABI manipulation into the HookKit namespace.
+ */
+
 #include "abi_macros.h"
 #include "accessor.h"
 #include "desc.h"

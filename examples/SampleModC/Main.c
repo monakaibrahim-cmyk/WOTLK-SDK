@@ -1,15 +1,22 @@
+/**
+ * @file Main.c
+ * @brief Reference pure C mod implementation demonstrating WotlkSDK Native C API.
+ *
+ * Demonstrates:
+ * - Pure C compilation without C++ runtime or standard library dependencies
+ * - Engine lifecycle initialization and shutdown via C bindings
+ * - Frame update and world enter/leave callbacks
+ * - Console CVar registration and callbacks in C
+ * - Discord Rich Presence queries and control in C
+ */
+
 #include <windows.h>
 #include <WOTLK-SDK/wotlkc.h>
 
 /**
- * @brief Sample Pure C WoW 3.3.5a Mod DLL using WotlkSDK Native C API.
- *
- * This sample is compiled with a pure C compiler (C99/C11/C17/C23) without any C++
- * runtime or STL dependencies.
+ * @brief Frame update callback executing on each engine render tick.
  */
-
 static void on_frame_update(void) {
-    /* Runs on every engine paint/render frame tick */
     if (GAME_IS_IN_WORLD()) {
         wotlk_guid_t my_uid = PLAYER_GET_UID();
         uint32_t pending_spell = SPELL_GET_ID();
@@ -20,8 +27,10 @@ static void on_frame_update(void) {
     }
 }
 
+/**
+ * @brief Dispatched when the local player character enters the game world.
+ */
 static void on_world_enter(void) {
-    /* Runs when player enters the world */
     wotlk_guid_t player_guid = PLAYER_GET_UID();
     const char* player_name = PLAYER_GET_NAME();
     uint32_t player_level = PLAYER_GET_LEVEL();
@@ -29,31 +38,39 @@ static void on_world_enter(void) {
     (void)player_name;
     (void)player_level;
 
-    /* Discord Rich Presence snapshot */
+    /* Snapshot current state for rich presence */
     wotlk_rich_presence_t presence;
     PRESENCE_GET_DATA(&presence);
 }
 
+/**
+ * @brief Dispatched when the player character logs out or leaves the world.
+ */
 static void on_world_leave(void) {
-    /* Runs when player logs out */
 }
 
+/**
+ * @brief Callback fired when the custom console variable is modified.
+ */
 static void on_cvar_change(int new_value, int changed) {
     if (changed) {
-        /* Handle runtime CVar change in pure C */
+        /* Process runtime CVar change */
     }
 }
 
+/**
+ * @brief Dynamic link library entry point for the pure C mod.
+ */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
     (void)lpReserved;
 
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);
 
-        /* 1. Optional: Programmatically configure AutoLogin in pure C */
-        /* wotlk_autologin_configure("username", "password", "logon.warmane.com", "Lordaeron", "MyCharacter"); */
+        /* 1. (Optional) Programmatically configure AutoLogin in pure C */
+        /* wotlk_autologin_configure("username", "password", "logon.example.com", "Lordaeron", "MyCharacter"); */
 
-        /* 2. Initialize WotlkSDK (installs core engine hooks) */
+        /* 2. Initialize WotlkSDK hooks */
         if (!wotlk_sdk_initialize(5000)) {
             return FALSE;
         }
@@ -73,7 +90,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
             on_cvar_change
         );
 
-        /* 5. Optional: Start threaded Discord Rich Presence in pure C */
+        /* 5. (Optional) Start threaded Discord Rich Presence in pure C */
         /* DISCORD_START("123456789012345678", 5000); */
     } else if (reason == DLL_PROCESS_DETACH) {
         wotlk_sdk_shutdown();

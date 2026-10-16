@@ -1,3 +1,8 @@
+/**
+ * @file Entry.cpp
+ * @brief WotlkSDK primary lifecycle initialization, memory patching, and DLL entry point.
+ */
+
 #include <windows.h>
 
 #include <cassert>
@@ -11,12 +16,18 @@ namespace {
 bool g_initialized = false;
 
 #ifdef _DEBUG
+/**
+ * @brief Lua debug breakpoint hook for developer inspection in debug configurations.
+ */
 int luaDebugBreak(LuaState*) {
     if (IsDebuggerPresent()) { DebugBreak(); }
     return 0;
 }
 #endif
 
+/**
+ * @brief Registers SDK global flags and diagnostics into the client Lua 5.1 runtime.
+ */
 int luaOpenWotlkSDK(LuaState* l) {
     Lua::pushNumber(l, 1);
     Lua::setGlobal(l, "WOTLK_SDK");
@@ -36,13 +47,15 @@ namespace WotlkSDK {
 bool Initialize(uint32_t retryBudgetMs) {
     if (g_initialized) { return true; }
 
-    // Invalid function pointer hack
+    // Bypass engine function pointer validation checks (0x00D415B8, 0x00D415BC)
     *reinterpret_cast<DWORD*>(0x00D415B8) = 1;
     *reinterpret_cast<DWORD*>(0x00D415BC) = 0x7FFFFFFF;
 
-    *reinterpret_cast<DWORD*>(0x00B6AF54) = 1;  // TOSAccepted
-    *reinterpret_cast<DWORD*>(0x00B6AF5C) = 1;  // EULAAccepted
+    // Automatically accept startup legal dialogs (TOS and EULA)
+    *reinterpret_cast<DWORD*>(0x00B6AF54) = 1;
+    *reinterpret_cast<DWORD*>(0x00B6AF5C) = 1;
 
+    // Atomically install extension and auto-login hook transactions
     hookkit::HookTransaction tx{hookkit::RetryBudget{retryBudgetMs}};
 
     Extensions::Initialize(tx);
@@ -53,6 +66,7 @@ bool Initialize(uint32_t retryBudgetMs) {
         return false;
     }
 
+    // Register SDK Lua globals
     Extensions::Console::LUA_LIB_REGISTRY->add(luaOpenWotlkSDK);
     g_initialized = true;
 
@@ -77,8 +91,10 @@ void Shutdown() {
 
 }  // namespace WotlkSDK
 
-// Standalone DLL entry point - only enabled when building as a shared DLL
 #if defined(WOTLK_SDK_BUILD_SHARED) || defined(WOTLK_SDK_SHARED)
+/**
+ * @brief Dynamic link library entry point, active only when compiling WotlkSDK as a shared DLL.
+ */
 BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);

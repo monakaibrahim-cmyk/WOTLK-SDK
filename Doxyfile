@@ -1,0 +1,64 @@
+# Doxyfile for WotlkSDK
+# Configuration for generating Doxygen API documentation
+
+PROJECT_NAME           = "WotlkSDK"
+PROJECT_NUMBER         = "1.0.0"
+PROJECT_BRIEF          = "World of Warcraft 3.3.5a (Build 12340) Software Development Kit"
+OUTPUT_DIRECTORY       = docs
+CREATE_SUBDIRS         = NO
+ALLOW_UNICODE_NAMES    = YES
+OUTPUT_LANGUAGE        = English
+
+# Input configuration
+INPUT                  = include \
+                         src \
+                         tools \
+                         docs \
+                         README.md
+USE_MDFILE_AS_MAINPAGE = README.md
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */build/* \
+                         */.git/* \
+                         */deps/* \
+                         */MinHook/* \
+                         */asmjit/*
+
+# Extraction options
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_PRIV_VIRTUAL   = NO
+EXTRACT_PACKAGE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_METHODS  = NO
+EXTRACT_ANON_NSPACES   = NO
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+HIDE_FRIEND_COMPOUNDS  = NO
+CASE_SENSE_NAMES       = YES
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = YES
+SORT_MEMBERS_CTORS_1ST = YES
+
+# Warning options
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+
+# Output generation
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+GENERATE_LATEX         = NO
+GENERATE_MAN            = NO
+GENERATE_XML           = NO
+
+# Preprocessor
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = NO
+PREDEFINED             = WOTLK_SDK_API= \
+                         WOTLK_SDK_NODISCARD= \
+                         WOTLK_C_API= \
+                         __cplusplus

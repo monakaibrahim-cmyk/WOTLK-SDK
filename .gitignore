@@ -28,6 +28,9 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
+# Documentation generated files
+docs/html/
+
 # OS specific files
 .DS_Store
 Thumbs.db

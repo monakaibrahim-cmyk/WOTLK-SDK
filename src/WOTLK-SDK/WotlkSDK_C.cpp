@@ -394,3 +394,7 @@ void wotlk_discord_update(void) {
 int wotlk_discord_is_connected(void) {
     return WotlkSDK::Discord::IsConnected() ? 1 : 0;
 }
+
+void* wotlk_discord_get_core(void) {
+    return WotlkSDK::Discord::GetCore();
+}
