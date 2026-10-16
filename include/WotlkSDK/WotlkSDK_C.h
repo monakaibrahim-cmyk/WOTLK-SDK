@@ -150,7 +150,109 @@ WOTLK_C_API void*        wotlk_get_game_window(void);
 WOTLK_C_API uint64_t     wotlk_get_async_time_ms(void);
 
 /* ========================================================================= */
-/* SCREAMING_SNAKE_CASE Macro Aliases for C Developers                       */
+/* Typed Modules: SCREAMING_SNAKE_CASE API for C Modders                      */
+/* e.g., PLAYER_GET_UID(), SPELL_GET_ID(), GAME_GET_STATE(), ZONE_GET_TEXT()  */
+/* ========================================================================= */
+
+/* --- PLAYER Module --- */
+WOTLK_C_API wotlk_guid_t PLAYER_GET_UID(void);
+WOTLK_C_API wotlk_guid_t PLAYER_GET_GUID(void);
+WOTLK_C_API wotlk_guid_t PLAYER_GET_TARGET_UID(void);
+WOTLK_C_API wotlk_guid_t PLAYER_GET_TARGET_GUID(void);
+WOTLK_C_API const char*  PLAYER_GET_NAME(void);
+WOTLK_C_API uint32_t     PLAYER_GET_LEVEL(void);
+WOTLK_C_API uint8_t      PLAYER_GET_RACE(void);
+WOTLK_C_API const char*  PLAYER_GET_RACE_NAME(void);
+WOTLK_C_API uint8_t      PLAYER_GET_CLASS(void);
+WOTLK_C_API const char*  PLAYER_GET_CLASS_NAME(void);
+WOTLK_C_API uint8_t      PLAYER_GET_GENDER(void);
+WOTLK_C_API const char*  PLAYER_GET_GENDER_NAME(void);
+WOTLK_C_API uint32_t     PLAYER_GET_HEALTH(void);
+WOTLK_C_API uint32_t     PLAYER_GET_MAX_HEALTH(void);
+WOTLK_C_API uint32_t     PLAYER_GET_POWER(uint32_t index);
+WOTLK_C_API uint32_t     PLAYER_GET_MAX_POWER(uint32_t index);
+WOTLK_C_API uint32_t     PLAYER_GET_MANA(void);
+WOTLK_C_API uint32_t     PLAYER_GET_MAX_MANA(void);
+WOTLK_C_API void         PLAYER_GET_POSITION(float* out_x, float* out_y, float* out_z);
+WOTLK_C_API float        PLAYER_GET_FACING(void);
+WOTLK_C_API int          PLAYER_IS_IN_COMBAT(void);
+WOTLK_C_API int          PLAYER_IS_ALIVE(void);
+WOTLK_C_API int          PLAYER_IS_DEAD(void);
+WOTLK_C_API int          PLAYER_IS_GHOST(void);
+WOTLK_C_API void         PLAYER_SET_TARGET(wotlk_guid_t guid);
+WOTLK_C_API void         PLAYER_CLEAR_TARGET(void);
+
+/* --- SPELL Module --- */
+WOTLK_C_API uint32_t     SPELL_GET_ID(void);
+WOTLK_C_API int          SPELL_IS_TARGETING_AOE(void);
+WOTLK_C_API int          SPELL_CANCEL_AOE_TARGETING(void);
+WOTLK_C_API int          SPELL_CAST(uint32_t spell_id, wotlk_guid_t target);
+
+/* --- GAME Module --- */
+WOTLK_C_API uint32_t     GAME_GET_STATE(void);
+WOTLK_C_API const char*  GAME_GET_STATE_NAME(void);
+WOTLK_C_API int          GAME_IS_IN_WORLD(void);
+WOTLK_C_API int          GAME_IS_LOADING(void);
+WOTLK_C_API void*        GAME_GET_WINDOW(void);
+WOTLK_C_API uint64_t     GAME_GET_TIME_MS(void);
+
+/* --- ZONE Module --- */
+WOTLK_C_API const char*  ZONE_GET_TEXT(void);
+WOTLK_C_API const char*  ZONE_GET_ZONE_TEXT(void);
+WOTLK_C_API const char*  ZONE_GET_SUBZONE_TEXT(void);
+WOTLK_C_API const char*  ZONE_GET_MINIMAP_ZONE_TEXT(void);
+WOTLK_C_API uint32_t     ZONE_GET_AREA_ID(void);
+WOTLK_C_API uint32_t     ZONE_GET_MAP_ID(void);
+WOTLK_C_API const char*  ZONE_GET_MAP_NAME(void);
+WOTLK_C_API const char*  ZONE_GET_CONTINENT_NAME(void);
+
+/* --- PRESENCE Module (Discord Rich Presence Helper) --- */
+typedef struct wotlk_rich_presence_t {
+    uint32_t    game_state;
+    const char* game_state_name;
+    const char* character_name;
+    uint32_t    level;
+    const char* race_name;
+    const char* class_name;
+    const char* zone_text;
+    const char* subzone_text;
+    const char* continent_name;
+    const char* map_name;
+    uint32_t    map_id;
+    uint32_t    area_id;
+    int         is_in_world;
+    int         is_loading;
+    int         is_in_combat;
+} wotlk_rich_presence_t;
+
+WOTLK_C_API void         PRESENCE_GET_DATA(wotlk_rich_presence_t* out_data);
+
+/* --- CVAR Module --- */
+#define CVAR_GET_INT             wotlk_cvar_get_int
+#define CVAR_GET_FLOAT           wotlk_cvar_get_float
+#define CVAR_SET                 wotlk_cvar_set
+#define CVAR_REFRESH             wotlk_cvar_refresh
+#define CVAR_REGISTER_INT        wotlk_cvar_register_int
+#define CVAR_REGISTER_FLOAT      wotlk_cvar_register_float
+
+/* --- LUA Module --- */
+WOTLK_C_API int          LUA_EXECUTE(const char* script);
+
+/* --- AUTOLOGIN Module --- */
+#define AUTOLOGIN_CONFIGURE      wotlk_autologin_configure
+#define AUTOLOGIN_SET_LOGIN      wotlk_autologin_set_login
+#define AUTOLOGIN_SET_PASSWORD   wotlk_autologin_set_password
+#define AUTOLOGIN_SET_REALMLIST  wotlk_autologin_set_realmlist
+#define AUTOLOGIN_SET_REALM_NAME wotlk_autologin_set_realm_name
+#define AUTOLOGIN_SET_CHARACTER  wotlk_autologin_set_character
+#define AUTOLOGIN_GET_LOGIN      wotlk_autologin_get_login
+#define AUTOLOGIN_GET_PASSWORD   wotlk_autologin_get_password
+#define AUTOLOGIN_GET_REALMLIST  wotlk_autologin_get_realmlist
+#define AUTOLOGIN_GET_REALM_NAME wotlk_autologin_get_realm_name
+#define AUTOLOGIN_GET_CHARACTER  wotlk_autologin_get_character
+
+/* ========================================================================= */
+/* SCREAMING_SNAKE_CASE Macro Aliases for Legacy/Standard Functions          */
 /* ========================================================================= */
 #define WOTLK_SDK_INITIALIZE           wotlk_sdk_initialize
 #define WOTLK_SDK_IS_INITIALIZED       wotlk_sdk_is_initialized

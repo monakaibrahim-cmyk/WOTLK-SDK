@@ -200,3 +200,176 @@ void* wotlk_get_game_window(void) {
 uint64_t wotlk_get_async_time_ms(void) {
     return OS::getAsyncTimeMs{}();
 }
+
+/* ========================================================================= */
+/* Typed Pure C API Implementations                                          */
+/* ========================================================================= */
+
+// PLAYER
+wotlk_guid_t PLAYER_GET_UID(void) {
+    return WotlkSDK::PLAYER::GET_UID();
+}
+wotlk_guid_t PLAYER_GET_GUID(void) {
+    return WotlkSDK::PLAYER::GET_GUID();
+}
+wotlk_guid_t PLAYER_GET_TARGET_UID(void) {
+    return WotlkSDK::PLAYER::GET_TARGET_UID();
+}
+wotlk_guid_t PLAYER_GET_TARGET_GUID(void) {
+    return WotlkSDK::PLAYER::GET_TARGET_GUID();
+}
+const char* PLAYER_GET_NAME(void) {
+    return WotlkSDK::PLAYER::GET_NAME();
+}
+uint32_t PLAYER_GET_LEVEL(void) {
+    return WotlkSDK::PLAYER::GET_LEVEL();
+}
+uint8_t PLAYER_GET_RACE(void) {
+    return WotlkSDK::PLAYER::GET_RACE();
+}
+const char* PLAYER_GET_RACE_NAME(void) {
+    return WotlkSDK::PLAYER::GET_RACE_NAME();
+}
+uint8_t PLAYER_GET_CLASS(void) {
+    return WotlkSDK::PLAYER::GET_CLASS();
+}
+const char* PLAYER_GET_CLASS_NAME(void) {
+    return WotlkSDK::PLAYER::GET_CLASS_NAME();
+}
+uint8_t PLAYER_GET_GENDER(void) {
+    return WotlkSDK::PLAYER::GET_GENDER();
+}
+const char* PLAYER_GET_GENDER_NAME(void) {
+    return WotlkSDK::PLAYER::GET_GENDER_NAME();
+}
+uint32_t PLAYER_GET_HEALTH(void) {
+    return WotlkSDK::PLAYER::GET_HEALTH();
+}
+uint32_t PLAYER_GET_MAX_HEALTH(void) {
+    return WotlkSDK::PLAYER::GET_MAX_HEALTH();
+}
+uint32_t PLAYER_GET_POWER(uint32_t index) {
+    return WotlkSDK::PLAYER::GET_POWER(index);
+}
+uint32_t PLAYER_GET_MAX_POWER(uint32_t index) {
+    return WotlkSDK::PLAYER::GET_MAX_POWER(index);
+}
+uint32_t PLAYER_GET_MANA(void) {
+    return WotlkSDK::PLAYER::GET_MANA();
+}
+uint32_t PLAYER_GET_MAX_MANA(void) {
+    return WotlkSDK::PLAYER::GET_MAX_MANA();
+}
+void PLAYER_GET_POSITION(float* out_x, float* out_y, float* out_z) {
+    Vec3f pos = WotlkSDK::PLAYER::GET_POSITION();
+    if (out_x) *out_x = pos.x;
+    if (out_y) *out_y = pos.y;
+    if (out_z) *out_z = pos.z;
+}
+float PLAYER_GET_FACING(void) {
+    return WotlkSDK::PLAYER::GET_FACING();
+}
+int PLAYER_IS_IN_COMBAT(void) {
+    return WotlkSDK::PLAYER::IS_IN_COMBAT() ? 1 : 0;
+}
+int PLAYER_IS_ALIVE(void) {
+    return WotlkSDK::PLAYER::IS_ALIVE() ? 1 : 0;
+}
+int PLAYER_IS_DEAD(void) {
+    return WotlkSDK::PLAYER::IS_DEAD() ? 1 : 0;
+}
+int PLAYER_IS_GHOST(void) {
+    return WotlkSDK::PLAYER::IS_GHOST() ? 1 : 0;
+}
+void PLAYER_SET_TARGET(wotlk_guid_t guid) {
+    WotlkSDK::PLAYER::SET_TARGET(guid);
+}
+void PLAYER_CLEAR_TARGET(void) {
+    WotlkSDK::PLAYER::CLEAR_TARGET();
+}
+
+// SPELL
+uint32_t SPELL_GET_ID(void) {
+    return WotlkSDK::SPELL::GET_ID();
+}
+int SPELL_IS_TARGETING_AOE(void) {
+    return WotlkSDK::SPELL::IS_TARGETING_AOE() ? 1 : 0;
+}
+int SPELL_CANCEL_AOE_TARGETING(void) {
+    return WotlkSDK::SPELL::CANCEL_AOE_TARGETING();
+}
+int SPELL_CAST(uint32_t spell_id, wotlk_guid_t target) {
+    return WotlkSDK::SPELL::CAST(spell_id, nullptr, target);
+}
+
+// GAME
+uint32_t GAME_GET_STATE(void) {
+    return WotlkSDK::GAME::GET_STATE();
+}
+const char* GAME_GET_STATE_NAME(void) {
+    return WotlkSDK::GAME::GET_STATE_NAME();
+}
+int GAME_IS_IN_WORLD(void) {
+    return WotlkSDK::GAME::IS_IN_WORLD() ? 1 : 0;
+}
+int GAME_IS_LOADING(void) {
+    return WotlkSDK::GAME::IS_LOADING() ? 1 : 0;
+}
+void* GAME_GET_WINDOW(void) {
+    return WotlkSDK::GAME::GET_WINDOW();
+}
+uint64_t GAME_GET_TIME_MS(void) {
+    return WotlkSDK::GAME::GET_TIME_MS();
+}
+
+// ZONE
+const char* ZONE_GET_TEXT(void) {
+    return WotlkSDK::ZONE::GET_TEXT();
+}
+const char* ZONE_GET_ZONE_TEXT(void) {
+    return WotlkSDK::ZONE::GET_ZONE_TEXT();
+}
+const char* ZONE_GET_SUBZONE_TEXT(void) {
+    return WotlkSDK::ZONE::GET_SUBZONE_TEXT();
+}
+const char* ZONE_GET_MINIMAP_ZONE_TEXT(void) {
+    return WotlkSDK::ZONE::GET_MINIMAP_ZONE_TEXT();
+}
+uint32_t ZONE_GET_AREA_ID(void) {
+    return WotlkSDK::ZONE::GET_AREA_ID();
+}
+uint32_t ZONE_GET_MAP_ID(void) {
+    return WotlkSDK::ZONE::GET_MAP_ID();
+}
+const char* ZONE_GET_MAP_NAME(void) {
+    return WotlkSDK::ZONE::GET_MAP_NAME();
+}
+const char* ZONE_GET_CONTINENT_NAME(void) {
+    return WotlkSDK::ZONE::GET_CONTINENT_NAME();
+}
+
+// PRESENCE
+void PRESENCE_GET_DATA(wotlk_rich_presence_t* out_data) {
+    if (!out_data) { return; }
+    auto d = WotlkSDK::PRESENCE::GET_DATA();
+    out_data->game_state = d.game_state;
+    out_data->game_state_name = d.game_state_name;
+    out_data->character_name = d.character_name;
+    out_data->level = d.level;
+    out_data->race_name = d.race_name;
+    out_data->class_name = d.class_name;
+    out_data->zone_text = d.zone_text;
+    out_data->subzone_text = d.subzone_text;
+    out_data->continent_name = d.continent_name;
+    out_data->map_name = d.map_name;
+    out_data->map_id = d.map_id;
+    out_data->area_id = d.area_id;
+    out_data->is_in_world = d.is_in_world ? 1 : 0;
+    out_data->is_loading = d.is_loading ? 1 : 0;
+    out_data->is_in_combat = d.is_in_combat ? 1 : 0;
+}
+
+// LUA
+int LUA_EXECUTE(const char* script) {
+    return WotlkSDK::LUA::EXECUTE(script);
+}

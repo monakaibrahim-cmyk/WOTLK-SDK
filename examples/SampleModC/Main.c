@@ -10,12 +10,28 @@
 
 static void on_frame_update(void) {
     /* Runs on every engine paint/render frame tick */
+    if (GAME_IS_IN_WORLD()) {
+        wotlk_guid_t my_uid = PLAYER_GET_UID();
+        uint32_t pending_spell = SPELL_GET_ID();
+        const char* zone = ZONE_GET_ZONE_TEXT();
+        (void)my_uid;
+        (void)pending_spell;
+        (void)zone;
+    }
 }
 
 static void on_world_enter(void) {
     /* Runs when player enters the world */
-    wotlk_guid_t player_guid = wotlk_get_player_guid();
+    wotlk_guid_t player_guid = PLAYER_GET_UID();
+    const char* player_name = PLAYER_GET_NAME();
+    uint32_t player_level = PLAYER_GET_LEVEL();
     (void)player_guid;
+    (void)player_name;
+    (void)player_level;
+
+    /* Discord Rich Presence snapshot */
+    wotlk_rich_presence_t presence;
+    PRESENCE_GET_DATA(&presence);
 }
 
 static void on_world_leave(void) {

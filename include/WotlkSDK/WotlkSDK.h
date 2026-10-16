@@ -39,6 +39,7 @@
 // WotlkSDK Extensions & Features
 #include "AutoLogin.h"
 #include "Extensions.h"
+#include "API.h"
 
 namespace WotlkSDK {
 

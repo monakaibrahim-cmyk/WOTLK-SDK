@@ -14,12 +14,28 @@
 
 void onWorldUpdate() {
     // This callback runs on every engine frame tick
+    if (GAME::IS_IN_WORLD()) {
+        guid_t myGuid = PLAYER::GET_UID();
+        uint32_t pendingSpell = SPELL::GET_ID();
+        const char* zone = ZONE::GET_ZONE_TEXT();
+        (void)myGuid;
+        (void)pendingSpell;
+        (void)zone;
+    }
 }
 
 void onWorldEnter() {
     // Runs when the local player enters the world (after loading screen)
-    guid_t playerGuid = ObjectMgr::getPlayerGuid();
+    guid_t playerGuid = PLAYER::GET_UID();
+    const char* playerName = PLAYER::GET_NAME();
+    uint32_t playerLevel = PLAYER::GET_LEVEL();
     (void)playerGuid;
+    (void)playerName;
+    (void)playerLevel;
+
+    // Example Discord Rich Presence query
+    auto presence = PRESENCE::GET_DATA();
+    (void)presence;
 }
 
 void onWorldLeave() {
