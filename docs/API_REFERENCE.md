@@ -277,11 +277,10 @@ Type-safe atomic detours, mid-function hooks, and binary patching engine:
 WotlkSDK strictly requires **Microsoft Visual C++ (MSVC / cl.exe)** or **clang-cl**. MinGW / GCC / MinGW64 are explicitly unsupported due to:
 - **Game Engine ABI**: WoW 3.3.5a engine binaries use MSVC calling conventions (`__thiscall`, `__stdcall`, struct padding, and virtual function dispatch).
 - **Discord Social SDK**: Official Discord Game SDK libraries (`discord_game_sdk.lib`) are compiled for MSVC and cannot be linked with MinGW without runtime errors and missing symbols.
-- **vcpkg Integration**: Manifest mode natively targets `x86-windows` and `x64-windows` MSVC triplets.
+- **vcpkg Integration**: Manifest mode natively targets `x86-windows` MSVC triplet.
 
 ### CMake Presets
 The repository provides configured `CMakePresets.json`:
 - `x86-msvc-release`: 32-bit Win32 target for native WoW 3.3.5a in-game mods and hooks.
 - `x86-msvc-debug`: 32-bit Win32 debug target with symbol tables.
-- `x64-msvc-release`: 64-bit target for companion external applications and bots.
 - `ninja-msvc-x86`: Fast build preset utilizing the Ninja generator with MSVC `cl.exe`.

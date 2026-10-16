@@ -4,10 +4,13 @@ set(CMAKE_SYSTEM_VERSION 10.0)
 
 project(WotlkSDK LANGUAGES CXX C VERSION 1.0.0)
 
-# Architecture Configuration (Support both 32-bit Win32 and 64-bit x64)
+# Architecture Configuration: Strictly require 32-bit Win32 for native WoW 3.3.5a client
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    message(STATUS "WotlkSDK target architecture: x64 (64-bit companion / external tools).")
-    set(WOTLK_SDK_ARCH "x64")
+    message(FATAL_ERROR 
+        "Unsupported target architecture: 64-bit (x64).\n"
+        "WotlkSDK targets World of Warcraft 3.3.5a (build 12340), which is strictly a 32-bit (Win32 / x86) client application.\n"
+        "Please configure CMake specifying the Win32 architecture: cmake -B build -A Win32"
+    )
 else()
     message(STATUS "WotlkSDK target architecture: x86 / Win32 (32-bit native WoW 3.3.5a client).")
     set(WOTLK_SDK_ARCH "x86")

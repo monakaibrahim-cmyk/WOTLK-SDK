@@ -14,7 +14,7 @@ Designed for professional mod authors and reverse engineers, WotlkSDK can be sta
 > MinGW / GCC / MinGW64 are **explicitly unsupported** for the following architectural reasons:
 > 1. **Engine ABI Fidelity**: World of Warcraft 3.3.5a was compiled using MSVC. Engine virtual tables, `__thiscall` conventions, structure padding, and SEH exception handling match MSVC calling conventions.
 > 2. **Discord Social SDK Binary Compatibility**: The official Discord Social SDK (`discord-game-sdk`) ships precompiled `.lib` and `.dll` binaries targeting MSVC. MinGW cannot link these libraries due to symbol decoration and CRT runtime mismatches.
-> 3. **vcpkg Toolchain Integration**: vcpkg triplets (`x86-windows`, `x64-windows`) natively integrate with the MSVC toolchain and Visual Studio.
+> 3. **vcpkg Toolchain Integration**: vcpkg triplet (`x86-windows`) natively integrates with the MSVC toolchain and Visual Studio.
 
 ---
 
@@ -238,21 +238,24 @@ WotlkSDK includes standard `CMakePresets.json` configurations:
 cmake --preset x86-msvc-release
 cmake --build --preset x86-msvc-release
 
-# 64-bit x64 Release Build (for companion tools & external bots)
-cmake --preset x64-msvc-release
-cmake --build --preset x64-msvc-release
+# 32-bit Win32 Debug Build (with debug symbols & PDB)
+cmake --preset x86-msvc-debug
+cmake --build --preset x86-msvc-debug
 ```
 
 ### Step 3: Traditional Command-Line Build
 ```cmd
 # Target 32-bit Win32 with vcpkg integration
 cmake -B build -A Win32 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
+
+# Build both Debug and Release configurations
+cmake --build build --config Debug
 cmake --build build --config Release
 ```
 
 Outputs:
-- Static Library: `build/bin/Release/WotlkSDK.lib`
-- Sample Mods: `build/bin/Release/SampleMod.dll`, `build/bin/Release/SampleModC.dll`
+- Static Library: `build/bin/Release/WotlkSDK.lib`, `build/bin/Debug/WotlkSDK.lib`
+- Sample Mods: `build/bin/Release/SampleMod.dll`, `build/bin/Debug/SampleMod.dll`
 - Discord Runtime: `build/bin/Release/discord_game_sdk.dll`
 
 ### Generating Complete Doxygen Documentation

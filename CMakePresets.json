@@ -41,40 +41,6 @@
       }
     },
     {
-      "name": "x64-msvc-release",
-      "displayName": "x64 MSVC Release",
-      "description": "Target 64-bit companion tools using MSVC in Release configuration with vcpkg Discord Social SDK",
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
-      "binaryDir": "${sourceDir}/build/x64-msvc-release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": {
-          "type": "FILEPATH",
-          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        },
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "WOTLK_SDK_DISCORD_SOCIAL_SDK": "ON"
-      }
-    },
-    {
-      "name": "x64-msvc-debug",
-      "displayName": "x64 MSVC Debug",
-      "description": "Target 64-bit companion tools using MSVC in Debug configuration with vcpkg Discord Social SDK",
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
-      "binaryDir": "${sourceDir}/build/x64-msvc-debug",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_TOOLCHAIN_FILE": {
-          "type": "FILEPATH",
-          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        },
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "WOTLK_SDK_DISCORD_SOCIAL_SDK": "ON"
-      }
-    },
-    {
       "name": "ninja-msvc-x86",
       "displayName": "Ninja MSVC x86 Release",
       "description": "Target 32-bit WoW 3.3.5a using Ninja and MSVC cl.exe compiler with vcpkg",
@@ -87,22 +53,6 @@
           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         },
         "VCPKG_TARGET_TRIPLET": "x86-windows",
-        "WOTLK_SDK_DISCORD_SOCIAL_SDK": "ON"
-      }
-    },
-    {
-      "name": "ninja-msvc-x64",
-      "displayName": "Ninja MSVC x64 Release",
-      "description": "Target 64-bit companion tools using Ninja and MSVC cl.exe compiler with vcpkg",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/ninja-msvc-x64",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": {
-          "type": "FILEPATH",
-          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        },
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "WOTLK_SDK_DISCORD_SOCIAL_SDK": "ON"
       }
     }
@@ -119,23 +69,8 @@
       "configuration": "Debug"
     },
     {
-      "name": "x64-msvc-release",
-      "configurePreset": "x64-msvc-release",
-      "configuration": "Release"
-    },
-    {
-      "name": "x64-msvc-debug",
-      "configurePreset": "x64-msvc-debug",
-      "configuration": "Debug"
-    },
-    {
       "name": "ninja-msvc-x86",
       "configurePreset": "ninja-msvc-x86",
-      "configuration": "Release"
-    },
-    {
-      "name": "ninja-msvc-x64",
-      "configurePreset": "ninja-msvc-x64",
       "configuration": "Release"
     }
   ]

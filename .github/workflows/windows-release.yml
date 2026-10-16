@@ -40,29 +40,23 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Configure CMake (Static SDK for x86 and x64)
+      - name: Configure CMake (Win32 x86)
         shell: pwsh
         run: |
-          # 1. Win32 (x86) Static SDK + Sample Mod DLLs
           cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x86" `
             -G "Visual Studio 17 2022" -A Win32 -T host=x64 `
             -DWOTLK_SDK_BUILD_EXAMPLES=ON
 
-          # 2. x64 Static SDK
-          cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x64" `
-            -G "Visual Studio 17 2022" -A x64 -T host=x64 `
-            -DWOTLK_SDK_BUILD_EXAMPLES=OFF
-
       - name: Build Debug & Release Static Libraries
         shell: pwsh
         run: |
-          # Build Win32 x86 (Debug and Release)
+          # Build Win32 x86 Debug configuration
+          Write-Host "Building Win32 x86 Debug configuration..."
           cmake --build "${{ github.workspace }}/build-x86" --config Debug --parallel
-          cmake --build "${{ github.workspace }}/build-x86" --config Release --parallel
 
-          # Build x64 (Debug and Release)
-          cmake --build "${{ github.workspace }}/build-x64" --config Debug --parallel
-          cmake --build "${{ github.workspace }}/build-x64" --config Release --parallel
+          # Build Win32 x86 Release configuration
+          Write-Host "Building Win32 x86 Release configuration..."
+          cmake --build "${{ github.workspace }}/build-x86" --config Release --parallel
 
       - name: Package SDK Distribution Archive
         shell: pwsh
@@ -72,45 +66,69 @@ jobs:
 
           # Create directory structure for Static SDK distribution
           New-Item -ItemType Directory -Force -Path "$staging/include" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/Debug" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/Release" | Out-Null
           New-Item -ItemType Directory -Force -Path "$staging/lib/x86/Debug" | Out-Null
           New-Item -ItemType Directory -Force -Path "$staging/lib/x86/Release" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/lib/x64/Debug" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/lib/x64/Release" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/examples/bin/x86/Debug" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/examples/bin/x86/Release" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/examples/bin/Debug" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/examples/bin/Release" | Out-Null
 
-          # 1. Copy Public Headers
+          # 1. Copy Public Headers & Subsystem Interfaces
           Copy-Item "${{ github.workspace }}/include/*" "$staging/include" -Recurse -Force
           Copy-Item "${{ github.workspace }}/tools/HOOK-KIT" "$staging/include/HOOK-KIT" -Recurse -Force
+          Copy-Item "${{ github.workspace }}/tools/HOOK-KIT/MinHook/include/MinHook.h" "$staging/include/" -Force
+          Copy-Item "${{ github.workspace }}/tools/HOOK-KIT/asmjit/asmjit" "$staging/include/asmjit" -Recurse -Force
+          Copy-Item "${{ github.workspace }}/deps/unordered_dense/include/*" "$staging/include" -Recurse -Force
 
-          # 2. Copy Static SDK Libraries (WotlkSDK.lib)
-          # Win32 (x86)
+          # 2. Copy Static SDK Libraries (WotlkSDK.lib & dependencies)
+          # Win32 (x86) Debug
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/WotlkSDK.lib" "$staging/lib/Debug/" -Force
             Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/WotlkSDK.lib" "$staging/lib/x86/Debug/" -Force
           }
+          if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/MinHook.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/MinHook.lib" "$staging/lib/Debug/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/MinHook.lib" "$staging/lib/x86/Debug/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/asmjit.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/asmjit.lib" "$staging/lib/Debug/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/asmjit.lib" "$staging/lib/x86/Debug/" -Force
+          }
+          Get-ChildItem -Path "${{ github.workspace }}/build-x86/bin/Debug" -Filter "*.pdb" | ForEach-Object {
+            Copy-Item $_.FullName "$staging/lib/Debug/" -Force
+            Copy-Item $_.FullName "$staging/lib/x86/Debug/" -Force
+          }
+
+          # Win32 (x86) Release
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/WotlkSDK.lib" "$staging/lib/Release/" -Force
             Copy-Item "${{ github.workspace }}/build-x86/bin/Release/WotlkSDK.lib" "$staging/lib/x86/Release/" -Force
           }
-          # x64
-          if (Test-Path "${{ github.workspace }}/build-x64/bin/Debug/WotlkSDK.lib") {
-            Copy-Item "${{ github.workspace }}/build-x64/bin/Debug/WotlkSDK.lib" "$staging/lib/x64/Debug/" -Force
+          if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/MinHook.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/MinHook.lib" "$staging/lib/Release/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/MinHook.lib" "$staging/lib/x86/Release/" -Force
           }
-          if (Test-Path "${{ github.workspace }}/build-x64/bin/Release/WotlkSDK.lib") {
-            Copy-Item "${{ github.workspace }}/build-x64/bin/Release/WotlkSDK.lib" "$staging/lib/x64/Release/" -Force
+          if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/asmjit.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/asmjit.lib" "$staging/lib/Release/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/asmjit.lib" "$staging/lib/x86/Release/" -Force
+          }
+          Get-ChildItem -Path "${{ github.workspace }}/build-x86/bin/Release" -Filter "*.pdb" | ForEach-Object {
+            Copy-Item $_.FullName "$staging/lib/Release/" -Force
+            Copy-Item $_.FullName "$staging/lib/x86/Release/" -Force
           }
 
           # 3. Copy Sample Mod DLLs (Demonstrating custom mod consumers)
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/SampleMod.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/SampleMod.dll" "$staging/examples/bin/x86/Debug/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/SampleMod.dll" "$staging/examples/bin/Debug/" -Force
           }
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/SampleModC.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/SampleModC.dll" "$staging/examples/bin/x86/Debug/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/SampleModC.dll" "$staging/examples/bin/Debug/" -Force
           }
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/SampleMod.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/SampleMod.dll" "$staging/examples/bin/x86/Release/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/SampleMod.dll" "$staging/examples/bin/Release/" -Force
           }
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/SampleModC.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/SampleModC.dll" "$staging/examples/bin/x86/Release/" -Force
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/SampleModC.dll" "$staging/examples/bin/Release/" -Force
           }
 
           # 4. Copy Documentation, Manifest & Licenses
@@ -134,22 +152,25 @@ jobs:
             ## WotlkSDK Release ${{ steps.tag_info.outputs.TAG }}
             Software Development Kit for World of Warcraft 3.3.5a (Build 12340).
 
-            ### Architecture: Static Library Only
+            ### Architecture: Static Library Only (Win32 / x86)
             WotlkSDK is distributed exclusively as a static library (`WotlkSDK.lib`). Dynamic DLLs are reserved for consumer mods and custom loaders, eliminating external runtime DLL distribution requirements.
+
+            World of Warcraft 3.3.5a (build 12340) is natively a 32-bit Win32 client application. WotlkSDK is compiled strictly for 32-bit (x86) MSVC runtime.
 
             ### Included Static Builds
             - **Release Configurations** (`/MT` statically linked MSVC runtime):
-              - Win32 (x86): `lib/x86/Release/WotlkSDK.lib`
-              - x64: `lib/x64/Release/WotlkSDK.lib`
-              - Sample Mods: `SampleMod.dll` (C++23) & `SampleModC.dll` (Pure C)
-            - **Debug Configurations** (`/MTd` with full debug symbols):
-              - Win32 (x86): `lib/x86/Debug/WotlkSDK.lib`
-              - x64: `lib/x64/Debug/WotlkSDK.lib`
+              - Static SDK: `lib/Release/WotlkSDK.lib` (`lib/x86/Release/WotlkSDK.lib`)
+              - Dependent static libraries: `MinHook.lib`, `asmjit.lib`
+              - Sample Mods: `SampleMod.dll` (Modern C++23) & `SampleModC.dll` (Pure C)
+            - **Debug Configurations** (`/MTd` with full debug symbols & PDBs):
+              - Static SDK: `lib/Debug/WotlkSDK.lib` (`lib/x86/Debug/WotlkSDK.lib`)
+              - Dependent static libraries: `MinHook.lib`, `asmjit.lib`
               - Sample Mods: `SampleMod.dll` & `SampleModC.dll`
-            - **Headers**:
+            - **Headers & Includes**:
               - `<WOTLK-SDK/wotlkcpp.h>` (Modern C++23 entrypoint)
               - `<WOTLK-SDK/wotlkc.h>` (Native pure C entrypoint)
-              - Subsystems: Threaded Discord Social SDK, HOOK-KIT, Auto-Login, and engine registries.
+              - Subsystems: Threaded Discord Social SDK, HOOK-KIT, Auto-Login, and reverse-engineered engine registries.
+              - Standardized dependencies: `<HOOK-KIT/...>`, `<ankerl/unordered_dense.h>`, `<MinHook.h>`, `<asmjit/...>`
           draft: false
           prerelease: false
           generate_release_notes: true
