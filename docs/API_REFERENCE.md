@@ -91,4 +91,62 @@ For pure C (C99/C11/C17/C23) projects and DLLs.
 | `wotlk_get_game_window()` | Returns game HWND window handle as `void*`. |
 | `wotlk_get_async_time_ms()` | Returns client async timer in milliseconds. |
 
-*Note: All functions also have uppercase macros (e.g. `WOTLK_SDK_INITIALIZE`, `WOTLK_ON_UPDATE_ADD`).*
+*Note: All functions also have uppercase macros (e.g. `WOTLK_SDK_INITIALIZE`, `WOTLK_ON_UPDATE_ADD`, `DISCORD_START`).*
+
+---
+
+## 6. Discord Rich Presence Subsystem
+
+Headers: `<WOTLK-SDK/Discord.h>` / `<WOTLK-SDK/wotlkcpp.h>` (C++) or `<WOTLK-SDK/wotlkc.h>` (C)
+
+Threaded background worker communicating directly with Discord Desktop via Windows Named Pipe IPC (`\\.\pipe\discord-ipc-0..9`) with zero third-party runtime DLL dependencies.
+
+### Automatic Startup
+Define `DISCORD_RICH_PRESENCE` and provide your client ID before including SDK headers:
+```cpp
+#define DISCORD_RICH_PRESENCE
+#define DISCORD_CLIENT_ID "123456789012345678"
+#include <WOTLK-SDK/wotlkcpp.h>
+```
+The SDK automatically launches the presence worker thread upon `WotlkSDK::Initialize()`.
+
+### C++ Manual Control & Custom Templates
+```cpp
+// Manual lifecycle controls
+DISCORD::START("123456789012345678", 5000);
+DISCORD::UPDATE();
+DISCORD::STOP();
+
+// Template override for custom presence formatting (C++ only)
+struct MyPresenceFormatter {
+    static void Format(const PRESENCE::RICH_PRESENCE_DATA& in, DISCORD::Activity& out) {
+        DISCORD::DefaultFormatter::Format(in, out);
+        out.details = std::format("[Guild Raid] {}", out.details);
+    }
+};
+
+DISCORD::SET_FORMATTER<MyPresenceFormatter>();
+```
+
+### Pure C API
+```c
+DISCORD_START("123456789012345678", 5000);
+if (DISCORD_IS_CONNECTED()) {
+    DISCORD_UPDATE();
+}
+DISCORD_STOP();
+```
+
+---
+
+## 7. HOOK-KIT
+
+Path: `tools/HOOK-KIT/` (with `tools/hookkit/` alias link)
+Headers: `<HOOK-KIT/HOOK-KIT.h>` or `<hookkit/hookkit.h>`
+
+A modern atomic detour and mid-function patching library for 32-bit and 64-bit binaries.
+Features:
+- `HOOK_KIT::HookTransaction` atomic multi-hook installation with automatic rollback
+- Mid-function `HOOK_KIT::SiteHook` and `HOOK_KIT::CallsiteHook`
+- Register manipulation via `HOOK_KIT::Reg` and `HOOK_KIT::WildHook`
+- Safe memory protection management via `HOOK_KIT::ScopedUnprotect`

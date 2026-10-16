@@ -14,6 +14,7 @@
  *   GAME_IS_IN_WORLD();
  *   ZONE_GET_ZONE_TEXT();
  *   PRESENCE_GET_DATA(&presence);
+ *   DISCORD_START(client_id, 5000);
  */
 
 #include "WotlkSDK_C.h"

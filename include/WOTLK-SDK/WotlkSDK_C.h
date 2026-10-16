@@ -64,6 +64,11 @@ WOTLK_C_API int wotlk_sdk_initialize(uint32_t retry_budget_ms);
  */
 WOTLK_C_API int wotlk_sdk_is_initialized(void);
 
+/**
+ * @brief Shuts down background workers and releases SDK resources.
+ */
+WOTLK_C_API void wotlk_sdk_shutdown(void);
+
 /* ========================================================================= */
 /* Auto-Login API                                                            */
 /* ========================================================================= */
@@ -251,17 +256,37 @@ WOTLK_C_API int          LUA_EXECUTE(const char* script);
 #define AUTOLOGIN_GET_REALM_NAME wotlk_autologin_get_realm_name
 #define AUTOLOGIN_GET_CHARACTER  wotlk_autologin_get_character
 
+/* --- DISCORD Module --- */
+#ifndef DISCORD_CLIENT_ID
+#define DISCORD_CLIENT_ID ""
+#endif
+
+WOTLK_C_API int  wotlk_discord_start(const char* client_id, uint32_t interval_ms);
+WOTLK_C_API void wotlk_discord_stop(void);
+WOTLK_C_API void wotlk_discord_update(void);
+WOTLK_C_API int  wotlk_discord_is_connected(void);
+
+#define DISCORD_START            wotlk_discord_start
+#define DISCORD_STOP             wotlk_discord_stop
+#define DISCORD_UPDATE           wotlk_discord_update
+#define DISCORD_IS_CONNECTED     wotlk_discord_is_connected
+
 /* ========================================================================= */
 /* SCREAMING_SNAKE_CASE Macro Aliases for Legacy/Standard Functions          */
 /* ========================================================================= */
 #define WOTLK_SDK_INITIALIZE           wotlk_sdk_initialize
 #define WOTLK_SDK_IS_INITIALIZED       wotlk_sdk_is_initialized
+#define WOTLK_SDK_SHUTDOWN             wotlk_sdk_shutdown
 #define WOTLK_AUTOLOGIN_CONFIGURE      wotlk_autologin_configure
 #define WOTLK_AUTOLOGIN_SET_LOGIN      wotlk_autologin_set_login
 #define WOTLK_AUTOLOGIN_SET_PASSWORD   wotlk_autologin_set_password
 #define WOTLK_AUTOLOGIN_SET_REALMLIST  wotlk_autologin_set_realmlist
 #define WOTLK_AUTOLOGIN_SET_REALM_NAME wotlk_autologin_set_realm_name
 #define WOTLK_AUTOLOGIN_SET_CHARACTER  wotlk_autologin_set_character
+#define WOTLK_DISCORD_START            wotlk_discord_start
+#define WOTLK_DISCORD_STOP             wotlk_discord_stop
+#define WOTLK_DISCORD_UPDATE           wotlk_discord_update
+#define WOTLK_DISCORD_IS_CONNECTED     wotlk_discord_is_connected
 #define WOTLK_ON_UPDATE_ADD            wotlk_on_update_add
 #define WOTLK_ON_ENTER_ADD             wotlk_on_enter_add
 #define WOTLK_ON_LEAVE_ADD             wotlk_on_leave_add

@@ -31,3 +31,5 @@ using ::HookKit::Reg;
 }  // namespace HookKit
 
 namespace hookkit = HookKit;
+namespace HOOK_KIT = HookKit;
+namespace HOOKKIT = HookKit;

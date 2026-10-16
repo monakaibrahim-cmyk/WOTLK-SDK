@@ -13,6 +13,8 @@
  *   GAME::IS_IN_WORLD();
  *   ZONE::GET_ZONE_TEXT();
  *   PRESENCE::GET_DATA();
+ *   DISCORD::START();
+ *   DISCORD::SET_FORMATTER<CustomFormatter>();
  */
 
 #include "WotlkSDK.h"

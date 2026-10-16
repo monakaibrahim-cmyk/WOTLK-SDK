@@ -72,6 +72,21 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID) {
                 }
             }
         });
+
+        // 5. (Optional) Custom Discord Rich Presence formatter using C++ template override
+        struct MyDiscordFormatter {
+            static void Format(const PRESENCE::RICH_PRESENCE_DATA& in, DISCORD::Activity& out) {
+                DISCORD::DefaultFormatter::Format(in, out);
+                out.details = std::format("[Modded] {}", out.details);
+            }
+        };
+        DISCORD::SET_FORMATTER<MyDiscordFormatter>();
+
+        // If DISCORD_RICH_PRESENCE and DISCORD_CLIENT_ID were defined at compile time,
+        // Discord starts automatically in Initialize(). Otherwise it can be started manually:
+        // DISCORD::START("123456789012345678");
+    } else if (reason == DLL_PROCESS_DETACH) {
+        WotlkSDK::Shutdown();
     }
 
     return TRUE;

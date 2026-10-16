@@ -31,6 +31,10 @@ int wotlk_sdk_is_initialized(void) {
     return WotlkSDK::IsInitialized() ? 1 : 0;
 }
 
+void wotlk_sdk_shutdown(void) {
+    WotlkSDK::Shutdown();
+}
+
 // AutoLogin
 void wotlk_autologin_configure(
     const char* login,
@@ -372,4 +376,21 @@ void PRESENCE_GET_DATA(wotlk_rich_presence_t* out_data) {
 // LUA
 int LUA_EXECUTE(const char* script) {
     return WotlkSDK::LUA::EXECUTE(script);
+}
+
+// DISCORD
+int wotlk_discord_start(const char* client_id, uint32_t interval_ms) {
+    return WotlkSDK::Discord::Start(client_id ? client_id : DISCORD_CLIENT_ID, interval_ms) ? 1 : 0;
+}
+
+void wotlk_discord_stop(void) {
+    WotlkSDK::Discord::Stop();
+}
+
+void wotlk_discord_update(void) {
+    WotlkSDK::Discord::Update();
+}
+
+int wotlk_discord_is_connected(void) {
+    return WotlkSDK::Discord::IsConnected() ? 1 : 0;
 }

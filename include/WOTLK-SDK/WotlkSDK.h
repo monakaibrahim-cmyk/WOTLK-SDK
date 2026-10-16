@@ -40,6 +40,7 @@
 #include "AutoLogin.h"
 #include "Extensions.h"
 #include "API.h"
+#include "Discord.h"
 
 namespace WotlkSDK {
 
@@ -61,7 +62,14 @@ WOTLK_SDK_API bool Initialize(uint32_t retryBudgetMs = STARTUP_RETRY_BUDGET_MS);
  */
 WOTLK_SDK_NODISCARD WOTLK_SDK_API bool IsInitialized();
 
+/**
+ * @brief Shuts down background workers (Discord Rich Presence) and releases SDK resources.
+ */
+WOTLK_SDK_API void Shutdown();
+
 // Submodules in UpperCamelCase
+namespace Discord = ::WotlkSDK::Discord;
+namespace DISCORD = ::WotlkSDK::DISCORD;
 namespace AutoLogin = ::AutoLogin;
 namespace Extensions = ::Extensions;
 namespace Console = ::Extensions::Console;

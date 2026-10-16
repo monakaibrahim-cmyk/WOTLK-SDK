@@ -72,6 +72,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
             1,
             on_cvar_change
         );
+
+        /* 5. Optional: Start threaded Discord Rich Presence in pure C */
+        /* DISCORD_START("123456789012345678", 5000); */
+    } else if (reason == DLL_PROCESS_DETACH) {
+        wotlk_sdk_shutdown();
     }
 
     return TRUE;

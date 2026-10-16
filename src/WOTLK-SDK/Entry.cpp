@@ -55,11 +55,24 @@ bool Initialize(uint32_t retryBudgetMs) {
 
     Extensions::Console::LUA_LIB_REGISTRY->add(luaOpenWotlkSDK);
     g_initialized = true;
+
+#ifdef DISCORD_RICH_PRESENCE
+    if (!std::string_view(DISCORD_CLIENT_ID).empty()) {
+        Discord::Start(DISCORD_CLIENT_ID);
+    }
+#endif
+
     return true;
 }
 
 bool IsInitialized() {
     return g_initialized;
+}
+
+void Shutdown() {
+    if (!g_initialized) { return; }
+    Discord::Stop();
+    g_initialized = false;
 }
 
 }  // namespace WotlkSDK
@@ -70,6 +83,8 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
         WotlkSDK::Initialize();
+    } else if (reason == DLL_PROCESS_DETACH) {
+        WotlkSDK::Shutdown();
     }
     return TRUE;
 }

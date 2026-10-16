@@ -10,9 +10,13 @@ Designed as a clean, modular API, WotlkSDK can be statically linked directly int
 ## Architecture & API Design
 
 ### 1. Main Header & Entry Point
-Include the SDK via a single top-level header:
+Include the SDK via modern C++ or Pure C entrypoints:
 ```cpp
-#include <WotlkSDK.h>
+// C++:
+#include <WOTLK-SDK/wotlkcpp.h>
+
+// Pure C:
+#include <WOTLK-SDK/wotlkc.h>
 ```
 
 ### 2. Static Library (`.lib`) vs Shared DLL (`.dll`)
@@ -131,11 +135,18 @@ Comprehensive engine definitions and offsets for WoW 3.3.5a:
 - **`NetClient`**: Client network handling, `NetClient::login`
 - **`Storm`**: Memory allocation (`Storm::Memory`), file I/O (`Storm::File`), strings (`Storm::Str`), synchronization (`Storm::Sync`)
 
-### Hooking Infrastructure (`tools/hookkit/`)
-Type-safe x86 hooking framework built on MinHook and asmjit:
-- Atomic multi-hook transactions (`hookkit::HookTransaction`) with retry budgets
+### Discord Rich Presence (`WOTLK-SDK/Discord.h`)
+Threaded Discord Social IPC (`\\.\pipe\discord-ipc-0..9`) with zero third-party DLL dependencies:
+- Automatic startup by defining `DISCORD_RICH_PRESENCE` and setting `DISCORD_CLIENT_ID`
+- C++ template formatter overrides: `DISCORD::SET_FORMATTER<MyFormatter>()`
+- Real-time tracking: level, race, class, zone, subzone, game state (login, realm select, character select, in-world), party size, and elapsed timestamps
+- Native Pure C bindings: `DISCORD_START(client_id, interval_ms)`
+
+### Hooking Infrastructure (`tools/HOOK-KIT/`)
+Modern type-safe x86 and x64 hooking framework built on MinHook and asmjit:
+- Atomic multi-hook transactions (`HOOK_KIT::HookTransaction`) with retry budgets
 - Support for calling conventions: `eCdecl`, `eStdcall`, `eThiscall`, `eFastcall`, and register-based `WildAbi`
-- Call-site trampoline builders and memory patch utilities
+- Mid-function callsite and byte patch hooks (`HOOK_KIT::SiteHook`, `HOOK_KIT::PatchBytes`)
 
 ### Engine Extensions & Registries (`WOTLK-SDK/Extensions.h`)
 All registries and callbacks are accessible via `SCREAMING_SNAKE_CASE`:

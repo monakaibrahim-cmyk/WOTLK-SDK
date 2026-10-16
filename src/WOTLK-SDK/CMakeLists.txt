@@ -8,6 +8,7 @@ add_library(
         "Entry.cpp"
         "Extensions.h" "Extensions.cpp"
         "AutoLogin.h" "AutoLogin.cpp"
+        "Discord.cpp"
         "WotlkSDK_C.cpp"
 )
 
