@@ -1,1 +1,1 @@
-add_subdirectory(WotlkSDK)
+add_subdirectory(WOTLK-SDK)

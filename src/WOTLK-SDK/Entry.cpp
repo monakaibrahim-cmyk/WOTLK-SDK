@@ -3,9 +3,9 @@
 #include <cassert>
 
 #include "Lib/Lua.h"
-#include "WotlkSDK/AutoLogin.h"
-#include "WotlkSDK/Extensions.h"
-#include "WotlkSDK/WotlkSDK.h"
+#include "WOTLK-SDK/AutoLogin.h"
+#include "WOTLK-SDK/Extensions.h"
+#include "WOTLK-SDK/WotlkSDK.h"
 
 namespace {
 bool g_initialized = false;

@@ -15,4 +15,4 @@
  *   PRESENCE::GET_DATA();
  */
 
-#include "../WotlkSDK/WotlkSDK.h"
+#include "WotlkSDK.h"

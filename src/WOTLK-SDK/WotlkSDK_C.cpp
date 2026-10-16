@@ -1,5 +1,5 @@
-#include "WotlkSDK/WotlkSDK_C.h"
-#include "WotlkSDK/WotlkSDK.h"
+#include "WOTLK-SDK/WotlkSDK_C.h"
+#include "WOTLK-SDK/WotlkSDK.h"
 
 // Version
 const char* wotlk_sdk_get_version_string(void) {

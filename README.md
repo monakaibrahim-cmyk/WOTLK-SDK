@@ -137,7 +137,7 @@ Type-safe x86 hooking framework built on MinHook and asmjit:
 - Support for calling conventions: `eCdecl`, `eStdcall`, `eThiscall`, `eFastcall`, and register-based `WildAbi`
 - Call-site trampoline builders and memory patch utilities
 
-### Engine Extensions & Registries (`WotlkSDK/Extensions.h`)
+### Engine Extensions & Registries (`WOTLK-SDK/Extensions.h`)
 All registries and callbacks are accessible via `SCREAMING_SNAKE_CASE`:
 - **`WotlkSDK::CVAR_REGISTRY`**: Register custom CVars with auto clamping, type conversion, and change callbacks
 - **`WotlkSDK::EVENT_REGISTRY`**: Register custom FrameScript events dynamically

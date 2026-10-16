@@ -26,7 +26,7 @@
 #include "FrameScript/FrameScript.h"
 #include "Glue/CGlueMgr.h"
 #include "Lib/Lua.h"
-#include "WotlkSDK/Defines.h"
+#include "WOTLK-SDK/Defines.h"
 
 namespace Extensions {
 WOTLK_SDK_API void Initialize(hookkit::HookTransaction& tx);

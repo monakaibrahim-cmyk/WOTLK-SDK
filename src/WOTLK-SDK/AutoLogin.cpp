@@ -1,4 +1,4 @@
-#include "WotlkSDK/AutoLogin.h"
+#include "WOTLK-SDK/AutoLogin.h"
 
 #include <shellapi.h>
 
@@ -13,7 +13,7 @@
 #include "Glue/LoginUI.h"
 #include "Net/NetClient.h"
 #include "Utils.h"
-#include "WotlkSDK/Extensions.h"
+#include "WOTLK-SDK/Extensions.h"
 
 #include <cctype>
 

@@ -1,3 +1,3 @@
 #pragma once
 
-#include "WotlkSDK/WotlkSDK.h"
+#include "WOTLK-SDK/WotlkSDK.h"

@@ -16,6 +16,6 @@
  *   PRESENCE_GET_DATA(&presence);
  */
 
-#include "../WotlkSDK/WotlkSDK_C.h"
+#include "WotlkSDK_C.h"
 
 #endif /* WOTLK_SDK_WOTLKC_H */

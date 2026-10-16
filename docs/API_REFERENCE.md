@@ -2,7 +2,7 @@
 
 ## 1. Core Lifecycle & API
 
-Header: `<WotlkSDK.h>` / `<WotlkSDK/WotlkSDK.h>`
+Header: `<WotlkSDK.h>` / `<WOTLK-SDK/WotlkSDK.h>` / `<WOTLK-SDK/wotlkcpp.h>`
 
 | Method / Variable | Description |
 |---|---|
@@ -15,7 +15,7 @@ Header: `<WotlkSDK.h>` / `<WotlkSDK/WotlkSDK.h>`
 
 ## 2. Auto-Login Subsystem
 
-Header: `<WotlkSDK/AutoLogin.h>`
+Header: `<WOTLK-SDK/AutoLogin.h>`
 
 | Method / Variable | Description |
 |---|---|
@@ -36,7 +36,7 @@ Header: `<WotlkSDK/AutoLogin.h>`
 
 ## 3. Registries & Callbacks
 
-Header: `<WotlkSDK/Extensions.h>`
+Header: `<WOTLK-SDK/Extensions.h>`
 
 | Variable (`SCREAMING_SNAKE_CASE`) | Type | Description |
 |---|---|---|
@@ -69,7 +69,7 @@ All namespaces and types use `UpperCamelCase`:
 
 ## 5. Native Pure C API
 
-Header: `<WotlkSDK_C.h>` / `<WotlkSDK/WotlkSDK_C.h>`
+Header: `<WotlkSDK_C.h>` / `<WOTLK-SDK/WotlkSDK_C.h>` / `<WOTLK-SDK/wotlkc.h>`
 
 For pure C (C99/C11/C17/C23) projects and DLLs.
 
