@@ -1,0 +1,33 @@
+# Build directories
+build/
+bin/
+out/
+CMakeScripts/
+
+# Visual Studio / MSVC files
+.vs/
+*.sln.docstates
+*.user
+*.suo
+*.userosscache
+*.sln
+*.vcxproj*
+
+# Compiler / Linker outputs
+*.obj
+*.lib
+*.dll
+*.exp
+*.pdb
+*.ilk
+*.idb
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# OS specific files
+.DS_Store
+Thumbs.db

@@ -2,9 +2,6 @@ project(WotlkSDK)
 
 file(GLOB_RECURSE HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 
-# Default to STATIC library (.lib) for SDK consumers, with option for standalone SHARED (.dll)
-option(BUILD_SHARED_LIBS "Build WotlkSDK as a shared library (.dll) instead of static library (.lib)" OFF)
-
 add_library(
     ${PROJECT_NAME}
         ${HEADERS}
@@ -13,9 +10,12 @@ add_library(
         "AutoLogin.h" "AutoLogin.cpp"
 )
 
+add_library(WotlkSDK::WotlkSDK ALIAS ${PROJECT_NAME})
+
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
-        "${CMAKE_SOURCE_DIR}/include"
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -31,4 +31,21 @@ target_compile_definitions(
     ${PROJECT_NAME} PRIVATE
         APP_NAME="${PROJECT_NAME}"
         $<$<BOOL:${BUILD_SHARED_LIBS}>:WOTLK_SDK_BUILD_SHARED>
+        $<$<BOOL:${BUILD_SHARED_LIBS}>:WOTLK_SDK_EXPORTS>
+)
+
+# Installation & Export
+include(GNUInstallDirs)
+
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT WotlkSDKTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+    DIRECTORY "${CMAKE_SOURCE_DIR}/include/"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )

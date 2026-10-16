@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_SYSTEM_VERSION 10.0)
 
-project(WotlkSDK LANGUAGES CXX C)
+project(WotlkSDK LANGUAGES CXX C VERSION 1.0.0)
 
 if (NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "WotlkSDK targets 32-bit WoW (3.3.5a). Configure with: cmake -A Win32 <path>")
@@ -31,7 +31,9 @@ if (ipo_supported)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
 endif()
 
+# Build Options
 option(BUILD_SHARED_LIBS "Build WotlkSDK as a shared library (.dll) instead of static (.lib)" OFF)
+option(WOTLK_SDK_BUILD_EXAMPLES "Build WotlkSDK sample projects" ON)
 
 add_subdirectory(deps)
 add_subdirectory(tools)
@@ -67,3 +69,39 @@ target_link_libraries(WotlkSDK_Common INTERFACE
 )
 
 add_subdirectory(src)
+
+if (WOTLK_SDK_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
+# CMake Package Export & Installation
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
+set(WOTLK_SDK_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/WotlkSDK")
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/WotlkSDKConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    EXPORT WotlkSDKTargets
+    FILE WotlkSDKTargets.cmake
+    NAMESPACE WotlkSDK::
+    DESTINATION "${WOTLK_SDK_CMAKE_DIR}"
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/WotlkSDKConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/WotlkSDKConfig.cmake"
+    INSTALL_DESTINATION "${WOTLK_SDK_CMAKE_DIR}"
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/WotlkSDKConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/WotlkSDKConfigVersion.cmake"
+    DESTINATION "${WOTLK_SDK_CMAKE_DIR}"
+)
