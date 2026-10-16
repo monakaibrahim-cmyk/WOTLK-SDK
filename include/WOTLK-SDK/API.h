@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <string_view>
 #include <utility>
+#include <cstring>
+#include <algorithm>
 
 #include "Defines.h"
 #include "../BaseTypes.h"

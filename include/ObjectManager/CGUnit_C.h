@@ -15,6 +15,7 @@
 
 class CGWorldFrame;
 class CGNamePlateFrame;
+class CSimpleFrame;
 
 class CGUnit_C : public CGObject_C {
 public:

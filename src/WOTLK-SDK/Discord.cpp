@@ -225,7 +225,7 @@ void sendActivityPayload(HANDLE pipe) {
                 if (i > 0) joined += ",";
                 joined += pList[i];
             }
-            platformsPart = std::format(R"(,"supported_platforms":[{}]})", joined);
+            platformsPart = std::format(R"(,"supported_platforms":[{}])", joined);
         }
     }
 

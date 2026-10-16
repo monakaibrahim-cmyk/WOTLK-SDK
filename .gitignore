@@ -3,6 +3,7 @@ build/
 bin/
 out/
 CMakeScripts/
+Build-Logs/
 
 # Visual Studio / MSVC files
 .vs/

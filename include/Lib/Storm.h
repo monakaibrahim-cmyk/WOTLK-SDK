@@ -12,6 +12,9 @@
 
 #include "BaseTypes.h"
 
+namespace Storm {}
+namespace storm = Storm;
+
 namespace Storm {
 namespace Memory {
 
@@ -703,7 +706,7 @@ private:
     void reallocate(uint32_t new_capacity) {
         static_assert(alignof(T) <= 8, "Storm blocks are 8-byte aligned");
         if (new_capacity == 0) {
-            if (this->data) { storm::memory::free{}(this->data, nullptr, 0, 0); }
+            if (this->data) { Storm::Memory::free{}(this->data, nullptr, 0, 0); }
             this->data = nullptr;
             this->capacity = 0;
             return;
@@ -712,16 +715,16 @@ private:
         const uint32_t bytes = new_capacity * sizeof(T);
         T* new_data;
         if constexpr (std::is_trivially_copyable_v<T>) {
-            new_data = static_cast<T*>(this->data ? storm::memory::reAlloc{}(this->data, bytes, nullptr, 0, 0)
-                                                  : storm::memory::alloc{}(bytes, nullptr, 0, 0));
+            new_data = static_cast<T*>(this->data ? Storm::Memory::reAlloc{}(this->data, bytes, nullptr, 0, 0)
+                                                  : Storm::Memory::alloc{}(bytes, nullptr, 0, 0));
             if (!new_data) { return; }
         } else {
-            new_data = static_cast<T*>(storm::memory::alloc{}(bytes, nullptr, 0, 0));
+            new_data = static_cast<T*>(Storm::Memory::alloc{}(bytes, nullptr, 0, 0));
             if (!new_data) { return; }
             if (this->data) {
                 std::uninitialized_move_n(this->data, this->count, new_data);
                 std::destroy_n(this->data, this->count);
-                storm::memory::free{}(this->data, nullptr, 0, 0);
+                Storm::Memory::free{}(this->data, nullptr, 0, 0);
             }
         }
         this->data = new_data;
@@ -762,13 +765,13 @@ struct TSHashTable {
         if constexpr (std::is_same_v<Hashkey, const char*> || std::is_same_v<Hashkey, char*>) {
             if (this->slotmask == 0xFFFFFFFF || !key) { return nullptr; }
 
-            uint32_t hash = storm::str::hashUtf8{}(key);
+            uint32_t hash = Storm::Str::hashUtf8{}(key);
             auto& list = this->slotlistarray[hash & this->slotmask];
             auto* node = list.head();
 
             while (node) {
                 if (node->hash_obj.hash == hash) {
-                    if (node->hash_obj.key == key || storm::str::cmpI{}(node->hash_obj.key, key, 0x7FFFFFFF) == 0) {
+                    if (node->hash_obj.key == key || Storm::Str::cmpI{}(node->hash_obj.key, key, 0x7FFFFFFF) == 0) {
                         return node;
                     }
                 }

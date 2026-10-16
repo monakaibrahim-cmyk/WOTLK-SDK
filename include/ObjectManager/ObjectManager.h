@@ -1,5 +1,7 @@
 #pragma once
 
+#include <HOOK-KIT/hook.h>
+
 #include <cstdint>
 #include <type_traits>
 

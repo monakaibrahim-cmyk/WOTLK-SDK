@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BaseTypes.h"
+#include "Math/Primitives.h"
 
 #include "Lib/Storm.h"
 

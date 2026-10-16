@@ -14,6 +14,9 @@
 struct LuaState;
 using LuaNumber = double;
 
+namespace Lua {}
+namespace lua = Lua;
+
 namespace Lua {
 inline LuaState* getLuaState() { return reinterpret_cast<LuaState* (*)()>(0x00817DB0)(); }
 
@@ -112,7 +115,7 @@ inline void error(LuaState* l, const char* str, ...) {
 inline void throwError(LuaState* l, const char* error_text) {
     std::array<char, 0x400> dest{};
     const char* err = framescript::getCurrentFunction{}(l, dest.data(), dest.size());
-    lua::error(l, error_text, err);
+    error(l, error_text, err);
 }
 
 inline void checkType(LuaState* l, int idx, int t) { reinterpret_cast<FnLuaLChecktype>(0x0084F960)(l, idx, t); }

@@ -1,5 +1,12 @@
 #pragma once
 
+#include <cstdint>
+
+#include "Graphics/GraphicsEnums.h"
+#include "Lib/Storm.h"
+
+class CGxShader;
+
 class CShaderEffect {
 public:
     inline static auto& ALPHA_OP_ARR = *reinterpret_cast<GxTexOp (*)[8]>(0x00AF59E8);

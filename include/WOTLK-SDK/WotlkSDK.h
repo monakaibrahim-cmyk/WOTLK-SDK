@@ -78,8 +78,6 @@ WOTLK_SDK_NODISCARD WOTLK_SDK_API bool IsInitialized();
 WOTLK_SDK_API void Shutdown();
 
 // Submodules in UpperCamelCase
-namespace Discord = ::WotlkSDK::Discord;
-namespace DISCORD = ::WotlkSDK::DISCORD;
 namespace AutoLogin = ::AutoLogin;
 namespace Extensions = ::Extensions;
 namespace Console = ::Extensions::Console;

@@ -90,5 +90,3 @@ void Shutdown() {
 }
 
 }  // namespace WotlkSDK
-
-}

@@ -1,8 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include <HOOK-KIT/hook.h>
 
 #include <cstdint>
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <type_traits>
 
 #include "BaseTypes.h"
 

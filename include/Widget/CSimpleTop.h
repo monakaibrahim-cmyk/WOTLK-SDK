@@ -7,9 +7,9 @@
 #include "Lib/Storm.h"
 #include "UI/CFrameStrata.h"
 #include "UI/CLayoutFrame.h"
-
-struct CFrameStrata;
-class CSimpleFrame;
+#include "UI/UIEnums.h"
+#include "Widget/CSimpleFrame.h"
+#include "Widget/CSimpleTexture.h"
 
 class CSimpleTop : public CLayoutFrame {
 public:

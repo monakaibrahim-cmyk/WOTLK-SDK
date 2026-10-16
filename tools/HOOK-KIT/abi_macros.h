@@ -14,7 +14,11 @@ static_assert(sizeof(void*) == 4,
 #define HOOKKIT_CDECL __cdecl
 #define HOOKKIT_STDCALL __stdcall
 #define HOOKKIT_FASTCALL __fastcall
+#if defined(_MSC_VER) || defined(__clang__)
 #define HOOKKIT_VECTORCALL __vectorcall
+#else
+#define HOOKKIT_VECTORCALL __fastcall
+#endif
 
 #define HOOKKIT_FORCEINLINE __forceinline
 
