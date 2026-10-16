@@ -9,3 +9,25 @@
 #include "trampoline.h"
 #include "transaction.h"
 #include "wildabi.h"
+
+namespace HookKit {
+using ::HookKit::Conv;
+using ::HookKit::Hook;
+using ::HookKit::Desc;
+using ::HookKit::HookTransaction;
+using ::HookKit::RetryBudget;
+using ::HookKit::ScopedUnprotect;
+using ::HookKit::PatchBytes;
+using ::HookKit::ForceWrite;
+using ::HookKit::Targets;
+using ::HookKit::Branch;
+using ::HookKit::BranchMap;
+using ::HookKit::SiteHook;
+using ::HookKit::CallsiteHook;
+using ::HookKit::WildAbi;
+using ::HookKit::WildHook;
+using ::HookKit::ArgLoc;
+using ::HookKit::Reg;
+}  // namespace HookKit
+
+namespace hookkit = HookKit;

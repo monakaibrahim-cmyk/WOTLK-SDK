@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace hookkit {
+namespace HookKit {
 class ScopedUnprotect {
 public:
     ScopedUnprotect(void* address, std::size_t size)
@@ -36,8 +36,16 @@ public:
     ScopedUnprotect& operator=(ScopedUnprotect&&) = delete;
 
     [[nodiscard]]
-    bool ok() const noexcept {
+    bool Ok() const noexcept {
         return ok_;
+    }
+    [[nodiscard]]
+    bool ok() const noexcept {
+        return Ok();
+    }
+    [[nodiscard]]
+    bool OK() const noexcept {
+        return Ok();
     }
 
 private:
@@ -48,9 +56,9 @@ private:
 };
 
 template <typename T>
-bool patchBytes(void* address, const T* data, std::size_t size) {
+bool PatchBytes(void* address, const T* data, std::size_t size) {
     ScopedUnprotect guard(address, size);
-    if (!guard.ok()) { return false; }
+    if (!guard.Ok()) { return false; }
 
     std::memcpy(address, data, size);
     FlushInstructionCache(GetCurrentProcess(), address, size);
@@ -58,7 +66,30 @@ bool patchBytes(void* address, const T* data, std::size_t size) {
 }
 
 template <typename T>
-bool forceWrite(std::uintptr_t address, const T& value) {
-    return patchBytes(reinterpret_cast<void*>(address), &value, sizeof(T));
+bool patchBytes(void* address, const T* data, std::size_t size) {
+    return PatchBytes(address, data, size);
 }
-}  // namespace hookkit
+
+template <typename T>
+bool ForceWrite(std::uintptr_t address, const T& value) {
+    return PatchBytes(reinterpret_cast<void*>(address), &value, sizeof(T));
+}
+
+template <typename T>
+bool forceWrite(std::uintptr_t address, const T& value) {
+    return ForceWrite(address, value);
+}
+
+// SCREAMING_SNAKE_CASE Aliases
+template <typename T>
+bool PATCH_BYTES(void* address, const T* data, std::size_t size) {
+    return PatchBytes(address, data, size);
+}
+
+template <typename T>
+bool FORCE_WRITE(std::uintptr_t address, const T& value) {
+    return ForceWrite(address, value);
+}
+
+}  // namespace HookKit
+namespace hookkit = HookKit;

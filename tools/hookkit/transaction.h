@@ -47,7 +47,7 @@
 #include "accessor.h"
 #include "patch.h"
 
-namespace hookkit {
+namespace HookKit {
 
 namespace detail {
 
@@ -553,6 +553,10 @@ public:
     LONG status() const noexcept {
         return status_;
     }
+    [[nodiscard]]
+    LONG Status() const noexcept { return status(); }
+    [[nodiscard]]
+    LONG STATUS() const noexcept { return status(); }
 
     [[nodiscard("on failure nothing was applied, the previous state persists")]]
     LONG commit() {
@@ -589,6 +593,11 @@ public:
         return status_;
     }
 
+    [[nodiscard("on failure nothing was applied, the previous state persists")]]
+    LONG Commit() { return commit(); }
+    [[nodiscard("on failure nothing was applied, the previous state persists")]]
+    LONG COMMIT() { return commit(); }
+
     // drops everything queued so far and releases the lock; status() becomes ERROR_CANCELLED unless it already failed
     void abort() {
         if (committed_) { return; }
@@ -615,6 +624,9 @@ public:
         if (status_ == NO_ERROR) { status_ = ERROR_CANCELLED; }
     }
 
+    void Abort() { abort(); }
+    void ABORT() { abort(); }
+
     template <typename... HookTypes>
     HookTransaction& attach(const HookTypes&...) {
         static_assert((std::is_empty_v<HookTypes> && ...),
@@ -622,6 +634,11 @@ public:
         (attachOne<HookTypes>(), ...);
         return *this;
     }
+
+    template <typename... HookTypes>
+    HookTransaction& Attach(const HookTypes&... hooks) { return attach(hooks...); }
+    template <typename... HookTypes>
+    HookTransaction& ATTACH(const HookTypes&... hooks) { return attach(hooks...); }
 
     template <typename... HookTypes>
     HookTransaction& detach(const HookTypes&...) {
@@ -632,12 +649,21 @@ public:
     }
 
     template <typename... HookTypes>
+    HookTransaction& Detach(const HookTypes&... hooks) { return detach(hooks...); }
+    template <typename... HookTypes>
+    HookTransaction& DETACH(const HookTypes&... hooks) { return detach(hooks...); }
+
+    template <typename... HookTypes>
     static LONG attachNow(const HookTypes&... hooks) {
         HookTransaction tx;
         if (!tx) { return tx.status(); }
         tx.attach(hooks...);
         return tx.commit();
     }
+    template <typename... HookTypes>
+    static LONG AttachNow(const HookTypes&... hooks) { return attachNow(hooks...); }
+    template <typename... HookTypes>
+    static LONG ATTACH_NOW(const HookTypes&... hooks) { return attachNow(hooks...); }
 
     template <typename HookType>
     static LONG reinstall(const HookType& hook, void* detour) {
@@ -657,6 +683,10 @@ public:
         }
         return attached;
     }
+    template <typename HookType>
+    static LONG Reinstall(const HookType& hook, void* detour) { return reinstall(hook, detour); }
+    template <typename HookType>
+    static LONG REINSTALL(const HookType& hook, void* detour) { return reinstall(hook, detour); }
 
     template <typename Addr, typename Detour>
     HookTransaction& attachRaw(Addr** target, Detour detour) {
@@ -668,6 +698,10 @@ public:
         if (record(op)) { doAttachRaw(slot, detour_ptr); }
         return *this;
     }
+    template <typename Addr, typename Detour>
+    HookTransaction& AttachRaw(Addr** target, Detour detour) { return attachRaw(target, detour); }
+    template <typename Addr, typename Detour>
+    HookTransaction& ATTACH_RAW(Addr** target, Detour detour) { return attachRaw(target, detour); }
 
     template <typename Addr>
     HookTransaction& detachRaw(Addr** target) {
@@ -677,6 +711,10 @@ public:
         if (record(op)) { doDetachRaw(slot); }
         return *this;
     }
+    template <typename Addr>
+    HookTransaction& DetachRaw(Addr** target) { return detachRaw(target); }
+    template <typename Addr>
+    HookTransaction& DETACH_RAW(Addr** target) { return detachRaw(target); }
 
     template <typename... HookTypes>
     static LONG detachNow(const HookTypes&... hooks) {
@@ -685,6 +723,10 @@ public:
         tx.detach(hooks...);
         return tx.commit();
     }
+    template <typename... HookTypes>
+    static LONG DetachNow(const HookTypes&... hooks) { return detachNow(hooks...); }
+    template <typename... HookTypes>
+    static LONG DETACH_NOW(const HookTypes&... hooks) { return detachNow(hooks...); }
 
     // written together with the hooks when the transaction commits and restored if it rolls back
     template <typename T>
@@ -704,11 +746,19 @@ public:
         patches_.push_back({.address = address, .bytes = {bytes, bytes + size}});
         return *this;
     }
+    template <typename T>
+    HookTransaction& PatchBytes(void* address, const T* data, std::size_t size) { return patchBytes(address, data, size); }
+    template <typename T>
+    HookTransaction& PATCH_BYTES(void* address, const T* data, std::size_t size) { return patchBytes(address, data, size); }
 
     template <typename T>
     HookTransaction& forceWrite(std::uintptr_t address, const T& value) {
         return patchBytes(reinterpret_cast<void*>(address), &value, sizeof(T));
     }
+    template <typename T>
+    HookTransaction& ForceWrite(std::uintptr_t address, const T& value) { return forceWrite(address, value); }
+    template <typename T>
+    HookTransaction& FORCE_WRITE(std::uintptr_t address, const T& value) { return forceWrite(address, value); }
 
 private:
     struct RecordedOp {
@@ -1145,6 +1195,9 @@ private:
     std::vector<PendingPatch> patches_;
 };
 
-inline void shutdown() { detail::removePageGuardVeh(); }
+inline void Shutdown() { detail::removePageGuardVeh(); }
+inline void SHUTDOWN() { Shutdown(); }
+inline void shutdown() { Shutdown(); }
 
-}  // namespace hookkit
+}  // namespace HookKit
+namespace hookkit = HookKit;

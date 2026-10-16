@@ -7,7 +7,7 @@
 
 #include "abi_macros.h"
 
-namespace utils {
+namespace Utils {
 template <typename T>
 struct DefaultConstruct {
     T operator()() const { return T{}; }
@@ -55,20 +55,22 @@ public:
     static_assert(!detail::namesClosure(detail::valueSignature<Factory>()),
         "utils::Accessor: Factory must be a named function, not a converted lambda");
 
-    static HOOKKIT_FORCEINLINE T& get() {
+    static HOOKKIT_FORCEINLINE T& Get() {
         if (T* ptr = instance_.load(std::memory_order_acquire)) [[likely]] { return *ptr; }
         return getSlow();
     }
+    static HOOKKIT_FORCEINLINE T& get() { return Get(); }
+    static HOOKKIT_FORCEINLINE T& GET() { return Get(); }
 
-    HOOKKIT_FORCEINLINE T* operator->() const { return &get(); }
+    HOOKKIT_FORCEINLINE T* operator->() const { return &Get(); }
 
-    T& operator*() const { return get(); }
+    T& operator*() const { return Get(); }
 
-    explicit operator T&() const { return get(); }
+    explicit operator T&() const { return Get(); }
 
     template <typename Key>
     decltype(auto) operator[](Key&& idx) const {
-        return get()[std::forward<Key>(idx)];
+        return Get()[std::forward<Key>(idx)];
     }
 
 private:
@@ -80,4 +82,5 @@ private:
 
     inline static constinit std::atomic<T*> instance_{nullptr};
 };
-}  // namespace utils
+}  // namespace Utils
+namespace utils = Utils;

@@ -17,7 +17,7 @@
 #include "accessor.h"
 #include "desc.h"
 
-namespace hookkit {
+namespace HookKit {
 
 enum class Reg { eAx, eCx, eDx, eBx, eSp, eBp, eSi, eDi };
 
@@ -26,9 +26,11 @@ struct ArgLoc {
     Reg reg = Reg::eAx;
     std::int32_t stack_offset = 0;
 
-    static constexpr ArgLoc inReg(Reg r) { return ArgLoc{true, r, 0}; }
+    static constexpr ArgLoc InReg(Reg r) { return ArgLoc{true, r, 0}; }
+    static constexpr ArgLoc inReg(Reg r) { return InReg(r); }
 
-    static constexpr ArgLoc onStack(std::int32_t byte_offset) { return ArgLoc{false, Reg::eAx, byte_offset}; }
+    static constexpr ArgLoc OnStack(std::int32_t byte_offset) { return ArgLoc{false, Reg::eAx, byte_offset}; }
+    static constexpr ArgLoc onStack(std::int32_t byte_offset) { return OnStack(byte_offset); }
 };
 
 template <std::size_t N>
@@ -36,7 +38,7 @@ struct WildAbi {
     std::array<ArgLoc, N> args{};
 
     [[nodiscard]]
-    constexpr std::size_t stackBytes() const {
+    constexpr std::size_t StackBytes() const {
         std::size_t max_end = 0;
         for (const auto& a : args) {
             if (!a.is_reg) {
@@ -45,6 +47,11 @@ struct WildAbi {
             }
         }
         return max_end;
+    }
+
+    [[nodiscard]]
+    constexpr std::size_t stackBytes() const {
+        return StackBytes();
     }
 };
 
@@ -551,4 +558,5 @@ struct StaticBinder {
  */
 #define HOOKKIT_DECL_NAKED(HOOK_TYPE) HOOKKIT_DECL_NAKED_IMPL_(HOOK_TYPE, __COUNTER__)
 
-}  // namespace hookkit
+}  // namespace HookKit
+namespace hookkit = HookKit;

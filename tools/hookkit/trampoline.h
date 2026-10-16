@@ -17,7 +17,7 @@
 #include "hook.h"
 #include "wildabi.h"
 
-namespace hookkit {
+namespace HookKit {
 
 namespace detail {
 inline void hookkitDefaultConventionProbe() {}
@@ -743,4 +743,5 @@ private:
     using NAME##_hook = NAME;                                             \
     static_assert(std::is_empty_v<NAME>, #NAME " must stay zero-sized" HOOKKIT_ZERO_SIZED_WHY_)
 
-}  // namespace hookkit
+}  // namespace HookKit
+namespace hookkit = HookKit;

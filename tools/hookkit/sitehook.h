@@ -9,7 +9,7 @@
 #include "desc.h"
 #include "hook.h"
 
-namespace hookkit {
+namespace HookKit {
 
 template <std::uintptr_t... Addrs>
 struct Targets {
@@ -17,11 +17,16 @@ struct Targets {
     static constexpr std::array<std::uintptr_t, kSize> kData{Addrs...};
 
     template <std::size_t Index>
-    static constexpr std::uintptr_t get() {
+    static constexpr std::uintptr_t Get() {
         static_assert(Index < kSize,
             "hookkit::Targets::get<Index>: Branch target index out of range -- Index must be < the number of addresses "
             "listed in Targets<...>");
         return kData.data()[Index];
+    }
+
+    template <std::size_t Index>
+    static constexpr std::uintptr_t get() {
+        return Get<Index>();
     }
 };
 
@@ -38,14 +43,19 @@ struct BranchMap {
     static constexpr std::array<std::uintptr_t, kSize> kData{Branches::kAddress...};
 
     template <std::size_t Index>
-    static constexpr std::uintptr_t getByIndex() {
+    static constexpr std::uintptr_t GetByIndex() {
         static_assert(
             Index < kSize, "hookkit::BranchMap: Index out of range -- Index must be < the number of Branch<> entries");
         return kData.data()[Index];
     }
 
+    template <std::size_t Index>
+    static constexpr std::uintptr_t getByIndex() {
+        return GetByIndex<Index>();
+    }
+
     template <auto Key>
-    static constexpr std::uintptr_t getByKey() {
+    static constexpr std::uintptr_t GetByKey() {
         constexpr std::size_t kIdx = findIndex<Key>();
         static_assert(kIdx < kSize,
             "hookkit: Key not found in BranchMap -- no Branch<Key, Addr> entry has this key (a key of another type, "
@@ -53,11 +63,19 @@ struct BranchMap {
         return kData.data()[kIdx];
     }
 
+    template <auto Key>
+    static constexpr std::uintptr_t getByKey() {
+        return GetByKey<Key>();
+    }
+
+    template <std::size_t Index>
+    static constexpr std::uintptr_t Get() {
+        return GetByIndex<Index>();
+    }
+
     template <std::size_t Index>
     static constexpr std::uintptr_t get() {
-        static_assert(
-            Index < kSize, "hookkit::BranchMap: Index out of range -- Index must be < the number of Branch<> entries");
-        return kData.data()[Index];
+        return Get<Index>();
     }
 
 private:
@@ -130,4 +148,5 @@ struct SiteHook : Hook<Tag, Addr, Abi, Ret, Params...> {
     using NAME##_hook = NAME;                                                                              \
     static_assert(std::is_empty_v<NAME>, #NAME " must stay zero-sized" HOOKKIT_ZERO_SIZED_WHY_)
 
-}  // namespace hookkit
+}  // namespace HookKit
+namespace hookkit = HookKit;

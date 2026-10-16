@@ -11,7 +11,7 @@
 #include "abi_macros.h"
 #include "desc.h"
 
-namespace hookkit {
+namespace HookKit {
 
 template <typename Tag, std::uintptr_t Addr, Conv Abi, typename Ret, typename... Params>
 struct Hook {
@@ -54,34 +54,44 @@ struct Hook {
         "hookkit: std::atomic<uintptr_t> must be layout-compatible with void* -- patchSlot() reads/"
         "writes it as a raw PVOID* for both the MinHook in/out idiom and the bridge's own load");
 
-    static void* resolveDetour() {
+    static void* ResolveDetour() {
         if (void* ptr = raw_detour.load(std::memory_order_acquire)) { return ptr; }
         return reinterpret_cast<void*>(kBridge);
     }
+    static void* resolveDetour() { return ResolveDetour(); }
 
-    static void** patchSlot() { return reinterpret_cast<void**>(&target); }
+    static void** PatchSlot() { return reinterpret_cast<void**>(&target); }
+    static void** patchSlot() { return PatchSlot(); }
 
-    static bool quiescent(bool exclude_caller = false) {
+    static bool Quiescent(bool exclude_caller = false) {
         if (in_flight.load(std::memory_order_seq_cst) != 0) { return false; }
         return slots.idle(exclude_caller ? detail::quiesce_thread_slot : -1);
     }
+    static bool quiescent(bool exclude_caller = false) { return Quiescent(exclude_caller); }
 
     template <const auto& Fn>
-    static void* staticDetour() {
+    static void* StaticDetour() {
         return reinterpret_cast<void*>(&Descriptor::template detour<Fn>);
     }
+    template <const auto& Fn>
+    static void* staticDetour() { return StaticDetour<Fn>(); }
 
     template <const auto& Fn>
-    static void bindStatic() {
-        raw_detour.store(staticDetour<Fn>(), std::memory_order_release);
+    static void BindStatic() {
+        raw_detour.store(StaticDetour<Fn>(), std::memory_order_release);
     }
+    template <const auto& Fn>
+    static void bindStatic() { BindStatic<Fn>(); }
 
-    static HOOKKIT_FORCEINLINE Ret viaDetour(Params... args) {
+    static HOOKKIT_FORCEINLINE Ret ViaDetour(Params... args) {
         if constexpr (Abi == Conv::eThiscall) {
             return Descriptor::invoke(Addr, std::forward<Params>(args)...);
         } else {
             return reinterpret_cast<RawFn>(Addr)(std::forward<Params>(args)...);
         }
+    }
+    static HOOKKIT_FORCEINLINE Ret viaDetour(Params... args) {
+        return ViaDetour(std::forward<Params>(args)...);
     }
 
     HOOKKIT_FORCEINLINE Ret operator()(Params... args) const {
@@ -186,4 +196,5 @@ struct NamedTarget {
     using NAME##_hook = NAME;                                                            \
     static_assert(std::is_empty_v<NAME>, #NAME " must stay zero-sized" HOOKKIT_ZERO_SIZED_WHY_)
 
-}  // namespace hookkit
+}  // namespace HookKit
+namespace hookkit = HookKit;

@@ -13,7 +13,7 @@
 
 #include "abi_macros.h"
 
-namespace hookkit {
+namespace HookKit {
 
 enum class Conv { eCdecl, eStdcall, eFastcall, eVectorcall, eThiscall, eUsercall, eUserpurge };
 
@@ -278,4 +278,5 @@ struct Desc<Conv::eThiscall, Ret, This, Params...>
         "supported.");
 };
 
-}  // namespace hookkit
+}  // namespace HookKit
+namespace hookkit = HookKit;
