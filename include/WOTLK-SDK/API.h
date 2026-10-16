@@ -662,25 +662,106 @@ namespace OBJECT {
 namespace PRESENCE {
 
     /**
-     * @brief Unified snapshot of live engine, player, and geographic state.
+     * @brief Unified snapshot of live engine, player, party/queue, and geographic state.
      */
     struct RICH_PRESENCE_DATA {
-        uint32_t    game_state;      /**< Numeric engine state code (0=Login, 1=CharSelect, 2=InGame). */
-        const char* game_state_name; /**< Human-readable engine state name. */
-        const char* character_name;  /**< Active or selected character name. */
-        uint32_t    level;           /**< Character level (1-80). */
-        const char* race_name;       /**< Character race display string. */
-        const char* class_name;      /**< Character class display string. */
-        const char* zone_text;       /**< Current zone name. */
-        const char* subzone_text;    /**< Current subzone name. */
-        const char* continent_name;  /**< Current continent name. */
-        const char* map_name;        /**< Internal map directory name. */
-        uint32_t    map_id;          /**< Numeric Map ID from Map.dbc. */
-        uint32_t    area_id;         /**< Numeric Area ID from AreaTable.dbc. */
-        bool        is_in_world;     /**< true if actively present in the game world. */
-        bool        is_loading;      /**< true if an engine loading screen is rendering. */
-        bool        is_in_combat;    /**< true if player is currently in combat. */
+        uint32_t    game_state;          /**< Numeric engine state code (0=Login, 1=CharSelect, 2=InGame). */
+        const char* game_state_name;     /**< Human-readable engine state name. */
+        const char* character_name;      /**< Active or selected character name. */
+        uint32_t    level;               /**< Character level (1-80). */
+        const char* race_name;           /**< Character race display string. */
+        const char* class_name;          /**< Character class display string. */
+        const char* zone_text;           /**< Current zone name. */
+        const char* subzone_text;        /**< Current subzone name. */
+        const char* continent_name;      /**< Current continent name. */
+        const char* map_name;            /**< Internal map directory name. */
+        uint32_t    map_id;              /**< Numeric Map ID from Map.dbc. */
+        uint32_t    area_id;             /**< Numeric Area ID from AreaTable.dbc. */
+        bool        is_in_world;         /**< true if actively present in the game world. */
+        bool        is_loading;          /**< true if an engine loading screen is rendering. */
+        bool        is_in_combat;        /**< true if player is currently in combat. */
+
+        // Queue, Party, and Platform Presence Extensions
+        bool        is_in_group;         /**< true if the player is currently in a party or raid. */
+        bool        is_in_raid;          /**< true if the player is in a raid group. */
+        uint32_t    party_size;          /**< Current group/party size (e.g., 1, 4, 5, 10, 25). */
+        uint32_t    party_max;           /**< Maximum group/party capacity (e.g., 4, 5, 8, 10, 25, 40). */
+        bool        is_in_queue;         /**< true if currently queued (Dungeon Finder, Raid, BG, Arena). */
+        const char* queue_state;         /**< Queue state description (e.g. "Dungeon Queue", "Raid Queue"). */
+        int64_t     start_timestamp;     /**< Activity or queue start timestamp in Unix epoch seconds. */
+        int64_t     end_timestamp;       /**< Optional queue estimated end/countdown timestamp in Unix epoch seconds. */
+        uint32_t    supported_platforms; /**< Supported platforms bitmask (1=Desktop, 2=Android, 4=iOS). */
     };
+
+    namespace Internal {
+        inline char     g_queueState[64] = "";
+        inline bool     g_inQueue = false;
+        inline uint32_t g_partySize = 0;
+        inline uint32_t g_partyMax = 0;
+        inline int64_t  g_startTimestamp = 0;
+        inline int64_t  g_endTimestamp = 0;
+        inline uint32_t g_supportedPlatforms = 1; // 1 = Desktop
+    }
+
+    /**
+     * @brief Sets custom queue state (e.g., "Dungeon Queue", "Raid Queue", "Battleground Queue").
+     * @param state State text string, or nullptr to clear.
+     */
+    inline void SET_QUEUE_STATE(const char* state) {
+        if (state && state[0] != '\0') {
+            std::strncpy(Internal::g_queueState, state, sizeof(Internal::g_queueState) - 1);
+            Internal::g_queueState[sizeof(Internal::g_queueState) - 1] = '\0';
+            Internal::g_inQueue = true;
+        } else {
+            Internal::g_queueState[0] = '\0';
+            Internal::g_inQueue = false;
+        }
+    }
+
+    /**
+     * @brief Programmatically sets the party/raid size and capacity (e.g., 1/4, 4/8, 5/5, 10/10, 25/25).
+     * @param size Current member count.
+     * @param max Maximum capacity.
+     */
+    inline void SET_PARTY(uint32_t size, uint32_t max) {
+        Internal::g_partySize = size;
+        Internal::g_partyMax = max;
+    }
+
+    /**
+     * @brief Sets activity timestamps (start timestamp and optional queue/countdown end timestamp).
+     * @param start Activity start Unix epoch timestamp in seconds.
+     * @param end Optional activity completion/ETA Unix epoch timestamp in seconds.
+     */
+    inline void SET_TIMESTAMPS(int64_t start, int64_t end = 0) {
+        Internal::g_startTimestamp = start;
+        Internal::g_endTimestamp = end;
+    }
+
+    /**
+     * @brief Sets supported platform flags for the activity (1=Desktop, 2=Android, 4=iOS).
+     * @param platforms Platform bitmask.
+     */
+    inline void SET_SUPPORTED_PLATFORMS(uint32_t platforms) {
+        Internal::g_supportedPlatforms = platforms;
+    }
+
+    /**
+     * @brief Helper to configure queue state, party members, and optional queue duration/eta.
+     * @param queueName Queue name (e.g. "Dungeon Queue", "Raid Queue").
+     * @param partySize Current party count (e.g. 1, 4).
+     * @param partyMax Maximum party capacity (e.g. 4, 8, 5, 25).
+     * @param estEndTimestamp Optional estimated queue finish timestamp.
+     */
+    inline void SET_QUEUE(const char* queueName, uint32_t partySize = 0, uint32_t partyMax = 0, int64_t estEndTimestamp = 0) {
+        SET_QUEUE_STATE(queueName);
+        if (partySize > 0 && partyMax >= partySize) {
+            SET_PARTY(partySize, partyMax);
+        }
+        if (estEndTimestamp > 0) {
+            SET_TIMESTAMPS(0, estEndTimestamp);
+        }
+    }
 
     /**
      * @brief Captures an atomic snapshot of current client state suitable for rich presence formatting.
@@ -692,6 +773,30 @@ namespace PRESENCE {
         data.is_in_world = GAME::IS_IN_WORLD();
         data.is_loading = GAME::IS_LOADING();
         data.game_state_name = GAME::GET_STATE_NAME();
+
+        // Queue and platform configuration
+        data.is_in_queue = Internal::g_inQueue;
+        data.queue_state = Internal::g_queueState;
+        data.start_timestamp = Internal::g_startTimestamp;
+        data.end_timestamp = Internal::g_endTimestamp;
+        data.supported_platforms = Internal::g_supportedPlatforms;
+
+        // Group / Party configuration
+        if (Internal::g_partySize > 0) {
+            data.is_in_group = true;
+            data.is_in_raid = (Internal::g_partyMax > 5);
+            data.party_size = Internal::g_partySize;
+            data.party_max = Internal::g_partyMax;
+        } else if (data.is_in_world && *reinterpret_cast<const char*>(0x00BD0792) != 0) {
+            // Read 3.3.5a engine party member count if available
+            uint32_t numParty = *reinterpret_cast<const uint32_t*>(0x00BD1944);
+            if (numParty > 0 && numParty <= 4) {
+                data.is_in_group = true;
+                data.is_in_raid = false;
+                data.party_size = numParty + 1; // Party members + player
+                data.party_max = 5;
+            }
+        }
 
         if (data.is_in_world) {
             data.character_name = PLAYER::GET_NAME();

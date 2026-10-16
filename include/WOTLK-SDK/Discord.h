@@ -40,21 +40,24 @@ namespace Discord {
  * Conforms to the Discord RPC SET_ACTIVITY schema.
  */
 struct Activity {
-    std::string state;               /**< Secondary activity description (e.g., "Dalaran - Runeweaver Square"). */
+    std::string state;               /**< Secondary activity description (e.g., "Dungeon Queue", "Raid Queue", "Dalaran"). */
     std::string details;             /**< Primary activity status (e.g., "Level 80 Human Paladin"). */
     std::string large_image_key;     /**< Asset key for the large image uploaded to the Discord Developer Portal. */
     std::string large_image_text;    /**< Tooltip hover text for the large image asset. */
     std::string small_image_key;     /**< Asset key for the small overlay image (e.g., class or faction badge). */
     std::string small_image_text;    /**< Tooltip hover text for the small overlay image. */
     int64_t     start_timestamp = 0; /**< Unix epoch timestamp in seconds indicating activity start. Set to 0 for SDK auto-management. */
-    int         party_size = 0;      /**< Current party or raid member count. Set to 0 to omit. */
-    int         party_max = 0;       /**< Maximum party or raid capacity. Set to 0 to omit. */
+    int64_t     end_timestamp = 0;   /**< Optional Unix epoch timestamp in seconds indicating queue/activity completion or ETA. */
+    int         party_size = 0;      /**< Current party or raid member count (e.g., 1, 4). Set to 0 to omit. */
+    int         party_max = 0;       /**< Maximum party or raid capacity (e.g., 4, 8, 5, 25). Set to 0 to omit. */
+    std::string party_id;            /**< Unique party or lobby ID string. */
+    uint32_t    supported_platforms = 1; /**< Bitfield flags for supported platforms (1=Desktop, 2=Android, 4=iOS). */
 };
 
 /**
  * @brief Standard activity formatter mapping World of Warcraft client state to Discord presence.
  *
- * Extracts progression, zone, class, and state snapshots from PRESENCE::GET_DATA()
+ * Extracts progression, zone, class, queue, and party snapshots from PRESENCE::GET_DATA()
  * to generate informative Discord rich presence statuses.
  */
 struct DefaultFormatter {
@@ -64,6 +67,10 @@ struct DefaultFormatter {
      * @param out Destination Activity structure to populate.
      */
     static void Format(const PRESENCE::RICH_PRESENCE_DATA& in, Activity& out) {
+        out.supported_platforms = in.supported_platforms > 0 ? in.supported_platforms : 1;
+        out.start_timestamp = in.start_timestamp;
+        out.end_timestamp = in.end_timestamp;
+
         if (in.is_in_world) {
             if (in.character_name && in.character_name[0] != '\0') {
                 out.details = std::format("{} - Lvl {} {} {}", in.character_name, in.level, in.race_name, in.class_name);
@@ -71,12 +78,26 @@ struct DefaultFormatter {
                 out.details = std::format("Level {} {} {}", in.level, in.race_name, in.class_name);
             }
 
-            if (in.subzone_text && in.subzone_text[0] != '\0') {
+            // State priority: Active queue state (e.g., "Dungeon Queue", "Raid Queue") -> zone / subzone
+            if (in.is_in_queue && in.queue_state && in.queue_state[0] != '\0') {
+                out.state = in.queue_state;
+            } else if (in.subzone_text && in.subzone_text[0] != '\0') {
                 out.state = std::format("{} - {}", in.zone_text, in.subzone_text);
             } else if (in.zone_text && in.zone_text[0] != '\0') {
                 out.state = in.zone_text;
             } else {
                 out.state = in.continent_name && in.continent_name[0] != '\0' ? in.continent_name : "In World";
+            }
+
+            // Party representation (e.g. 1/4, 4/8, 5/5, 10/10, 25/25)
+            if (in.party_size > 0 && in.party_max >= in.party_size) {
+                out.party_size = static_cast<int>(in.party_size);
+                out.party_max = static_cast<int>(in.party_max);
+                out.party_id = "wotlk_party";
+            } else if (in.is_in_group) {
+                out.party_size = in.party_size > 0 ? static_cast<int>(in.party_size) : 1;
+                out.party_max = in.party_max > 0 ? static_cast<int>(in.party_max) : (in.is_in_raid ? 25 : 5);
+                out.party_id = "wotlk_party";
             }
 
             out.large_image_key = "wotlk_logo";
@@ -269,6 +290,51 @@ namespace DISCORD {
     template <typename Formatter>
     inline void SET_FORMATTER() {
         ::WotlkSDK::Discord::SetFormatter<Formatter>();
+    }
+
+    /**
+     * @brief Sets the activity state text (e.g., "Dungeon Queue", "Raid Queue", "In Dungeon").
+     * @param state State description.
+     */
+    inline void SET_STATE(std::string_view state) {
+        ::PRESENCE::SET_QUEUE_STATE(std::string(state).c_str());
+    }
+
+    /**
+     * @brief Sets the party/group size and capacity (e.g. 1/4, 4/8, 5/5, 10/10, 25/25).
+     * @param size Current member count.
+     * @param max Maximum capacity.
+     */
+    inline void SET_PARTY(uint32_t size, uint32_t max) {
+        ::PRESENCE::SET_PARTY(size, max);
+    }
+
+    /**
+     * @brief Sets activity timestamps (start timestamp and optional end/countdown ETA timestamp).
+     * @param start Activity start Unix epoch timestamp in seconds.
+     * @param end Optional activity completion/ETA Unix epoch timestamp in seconds.
+     */
+    inline void SET_TIMESTAMPS(int64_t start, int64_t end = 0) {
+        ::PRESENCE::SET_TIMESTAMPS(start, end);
+    }
+
+    /**
+     * @brief Sets supported platform flags for the activity (1=Desktop, 2=Android, 4=iOS).
+     * @param platforms Platform bitmask.
+     */
+    inline void SET_SUPPORTED_PLATFORMS(uint32_t platforms) {
+        ::PRESENCE::SET_SUPPORTED_PLATFORMS(platforms);
+    }
+
+    /**
+     * @brief Helper to configure queue state, party members, and optional queue duration/eta.
+     * @param queueName Queue name (e.g. "Dungeon Queue", "Raid Queue").
+     * @param partySize Current party count (e.g. 1, 4).
+     * @param partyMax Maximum party capacity (e.g. 4, 8, 5, 25).
+     * @param estEndTimestamp Optional estimated queue finish timestamp.
+     */
+    inline void SET_QUEUE(std::string_view queueName, uint32_t partySize = 0, uint32_t partyMax = 0, int64_t estEndTimestamp = 0) {
+        ::PRESENCE::SET_QUEUE(std::string(queueName).c_str(), partySize, partyMax, estEndTimestamp);
     }
 }  // namespace DISCORD
 

@@ -447,6 +447,15 @@ typedef struct wotlk_rich_presence_t {
     int         is_in_world;     /**< 1 if in world, 0 otherwise. */
     int         is_loading;      /**< 1 if loading screen active, 0 otherwise. */
     int         is_in_combat;    /**< 1 if in combat lockdown, 0 otherwise. */
+    int         is_in_group;     /**< 1 if in party or raid, 0 otherwise. */
+    int         is_in_raid;      /**< 1 if in raid, 0 otherwise. */
+    uint32_t    party_size;      /**< Current party count (e.g. 1 to 40). */
+    uint32_t    party_max;       /**< Maximum capacity (e.g. 4, 5, 8, 10, 25, 40). */
+    int         is_in_queue;     /**< 1 if in queue, 0 otherwise. */
+    const char* queue_state;     /**< Queue state (e.g. "Dungeon Queue", "Raid Queue"). */
+    int64_t     start_timestamp; /**< Activity or queue start Unix epoch seconds. */
+    int64_t     end_timestamp;   /**< Activity or queue end/eta Unix epoch seconds. */
+    uint32_t    supported_platforms; /**< Supported platforms (1=Desktop). */
 } wotlk_rich_presence_t;
 
 /**
@@ -454,6 +463,23 @@ typedef struct wotlk_rich_presence_t {
  * @param out_data Output pointer to wotlk_rich_presence_t structure.
  */
 WOTLK_C_API void PRESENCE_GET_DATA(wotlk_rich_presence_t* out_data);
+
+/** @brief Sets queue state text (e.g., "Dungeon Queue", "Raid Queue"). */
+WOTLK_C_API void wotlk_presence_set_queue_state(const char* state);
+
+/** @brief Sets party size and maximum capacity (e.g., 1/4, 4/8, 5/5, 10/10, 25/25). */
+WOTLK_C_API void wotlk_presence_set_party(uint32_t size, uint32_t max);
+
+/** @brief Sets presence start and optional end/countdown timestamps. */
+WOTLK_C_API void wotlk_presence_set_timestamps(int64_t start, int64_t end);
+
+/** @brief Sets activity supported platform bitmask (1=Desktop, 2=Android, 4=iOS). */
+WOTLK_C_API void wotlk_presence_set_supported_platforms(uint32_t platforms);
+
+#define PRESENCE_SET_QUEUE_STATE         wotlk_presence_set_queue_state
+#define PRESENCE_SET_PARTY               wotlk_presence_set_party
+#define PRESENCE_SET_TIMESTAMPS          wotlk_presence_set_timestamps
+#define PRESENCE_SET_SUPPORTED_PLATFORMS wotlk_presence_set_supported_platforms
 
 /* --- CVAR Module --- */
 #define CVAR_GET_INT             wotlk_cvar_get_int
@@ -520,11 +546,31 @@ WOTLK_C_API int   wotlk_discord_is_connected(void);
  */
 WOTLK_C_API void* wotlk_discord_get_core(void);
 
-#define DISCORD_START            wotlk_discord_start
-#define DISCORD_STOP             wotlk_discord_stop
-#define DISCORD_UPDATE           wotlk_discord_update
-#define DISCORD_IS_CONNECTED     wotlk_discord_is_connected
-#define DISCORD_GET_CORE         wotlk_discord_get_core
+/** @brief Sets Discord activity state string in pure C (e.g. "Dungeon Queue", "Raid Queue"). */
+WOTLK_C_API void  wotlk_discord_set_state(const char* state);
+
+/** @brief Sets Discord activity party size and capacity in pure C (e.g. 1/4, 4/8, 5/5). */
+WOTLK_C_API void  wotlk_discord_set_party(int party_size, int party_max);
+
+/** @brief Sets Discord activity timestamps in pure C. */
+WOTLK_C_API void  wotlk_discord_set_timestamps(int64_t start, int64_t end);
+
+/** @brief Sets Discord activity supported platform bitmask in pure C (1=Desktop, 2=Android, 4=iOS). */
+WOTLK_C_API void  wotlk_discord_set_supported_platforms(uint32_t platforms);
+
+/** @brief Helper to configure queue state, party members, and optional ETA in pure C. */
+WOTLK_C_API void  wotlk_discord_set_queue(const char* queue_name, int party_size, int party_max, int64_t est_end_timestamp);
+
+#define DISCORD_START                    wotlk_discord_start
+#define DISCORD_STOP                     wotlk_discord_stop
+#define DISCORD_UPDATE                   wotlk_discord_update
+#define DISCORD_IS_CONNECTED             wotlk_discord_is_connected
+#define DISCORD_GET_CORE                 wotlk_discord_get_core
+#define DISCORD_SET_STATE                wotlk_discord_set_state
+#define DISCORD_SET_PARTY                wotlk_discord_set_party
+#define DISCORD_SET_TIMESTAMPS           wotlk_discord_set_timestamps
+#define DISCORD_SET_SUPPORTED_PLATFORMS  wotlk_discord_set_supported_platforms
+#define DISCORD_SET_QUEUE                wotlk_discord_set_queue
 
 /* ========================================================================= */
 /* SCREAMING_SNAKE_CASE Macro Aliases for Legacy/Standard Functions          */

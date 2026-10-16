@@ -124,11 +124,17 @@ jobs:
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/SampleModC.dll") {
             Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/SampleModC.dll" "$staging/examples/bin/Debug/" -Force
           }
+          if (Test-Path "${{ github.workspace }}/build-x86/bin/Debug/DiscordSDKExample.dll") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Debug/DiscordSDKExample.dll" "$staging/examples/bin/Debug/" -Force
+          }
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/SampleMod.dll") {
             Copy-Item "${{ github.workspace }}/build-x86/bin/Release/SampleMod.dll" "$staging/examples/bin/Release/" -Force
           }
           if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/SampleModC.dll") {
             Copy-Item "${{ github.workspace }}/build-x86/bin/Release/SampleModC.dll" "$staging/examples/bin/Release/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x86/bin/Release/DiscordSDKExample.dll") {
+            Copy-Item "${{ github.workspace }}/build-x86/bin/Release/DiscordSDKExample.dll" "$staging/examples/bin/Release/" -Force
           }
 
           # 4. Copy Documentation, Manifest & Licenses
@@ -161,11 +167,11 @@ jobs:
             - **Release Configurations** (`/MT` statically linked MSVC runtime):
               - Static SDK: `lib/Release/WotlkSDK.lib` (`lib/x86/Release/WotlkSDK.lib`)
               - Dependent static libraries: `MinHook.lib`, `asmjit.lib`
-              - Sample Mods: `SampleMod.dll` (Modern C++23) & `SampleModC.dll` (Pure C)
+              - Sample Mods: `SampleMod.dll` (Modern C++23), `SampleModC.dll` (Pure C), & `DiscordSDKExample.dll` (Discord Social SDK & Queues)
             - **Debug Configurations** (`/MTd` with full debug symbols & PDBs):
               - Static SDK: `lib/Debug/WotlkSDK.lib` (`lib/x86/Debug/WotlkSDK.lib`)
               - Dependent static libraries: `MinHook.lib`, `asmjit.lib`
-              - Sample Mods: `SampleMod.dll` & `SampleModC.dll`
+              - Sample Mods: `SampleMod.dll`, `SampleModC.dll`, & `DiscordSDKExample.dll`
             - **Headers & Includes**:
               - `<WOTLK-SDK/wotlkcpp.h>` (Modern C++23 entrypoint)
               - `<WOTLK-SDK/wotlkc.h>` (Native pure C entrypoint)

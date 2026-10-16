@@ -183,7 +183,13 @@ void sendActivityPayload(HANDLE pipe) {
         }
     }
 
+    std::string timestampsPart;
     int64_t start = activity.start_timestamp > 0 ? activity.start_timestamp : g_startTime;
+    if (activity.end_timestamp > 0) {
+        timestampsPart = std::format(R"(,"timestamps":{{"start":{},"end":{}}})", start, activity.end_timestamp);
+    } else if (start > 0) {
+        timestampsPart = std::format(R"(,"timestamps":{{"start":{}}})", start);
+    }
 
     std::string assetsPart;
     if (!activity.large_image_key.empty() || !activity.small_image_key.empty()) {
@@ -198,17 +204,40 @@ void sendActivityPayload(HANDLE pipe) {
 
     std::string partyPart;
     if (activity.party_size > 0 && activity.party_max >= activity.party_size) {
-        partyPart = std::format(R"(,"party":{{"size":[{},{}]}})", activity.party_size, activity.party_max);
+        std::string partyId = !activity.party_id.empty() ? activity.party_id : "wotlk_party";
+        partyPart = std::format(
+            R"(,"party":{{"id":"{}","size":[{},{}]}})",
+            escapeJson(partyId),
+            activity.party_size,
+            activity.party_max
+        );
+    }
+
+    std::string platformsPart;
+    if (activity.supported_platforms > 0) {
+        std::vector<std::string> pList;
+        if (activity.supported_platforms & 1) pList.push_back(R"("desktop")");
+        if (activity.supported_platforms & 2) pList.push_back(R"("android")");
+        if (activity.supported_platforms & 4) pList.push_back(R"("ios")");
+        if (!pList.empty()) {
+            std::string joined;
+            for (size_t i = 0; i < pList.size(); ++i) {
+                if (i > 0) joined += ",";
+                joined += pList[i];
+            }
+            platformsPart = std::format(R"(,"supported_platforms":[{}]})", joined);
+        }
     }
 
     std::string payload = std::format(
-        R"({{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":{{"state":"{}","details":"{}","timestamps":{{"start":{}}}{}{}}}}},"nonce":"{}"}})",
+        R"({{"cmd":"SET_ACTIVITY","args":{{"pid":{},"activity":{{"state":"{}","details":"{}"{}{}{}{}}}}},"nonce":"{}"}})",
         GetCurrentProcessId(),
         escapeJson(activity.state),
         escapeJson(activity.details),
-        start,
+        timestampsPart,
         assetsPart,
         partyPart,
+        platformsPart,
         ++g_nonce
     );
 
@@ -245,7 +274,12 @@ void sendSocialSdkActivity() {
     act.SetDetails(activity.details.c_str());
 
     int64_t start = activity.start_timestamp > 0 ? activity.start_timestamp : g_startTime;
-    act.GetTimestamps().SetStart(start);
+    if (start > 0) {
+        act.GetTimestamps().SetStart(start);
+    }
+    if (activity.end_timestamp > 0) {
+        act.GetTimestamps().SetEnd(activity.end_timestamp);
+    }
 
     if (!activity.large_image_key.empty()) {
         act.GetAssets().SetLargeImage(activity.large_image_key.c_str());
@@ -258,6 +292,9 @@ void sendSocialSdkActivity() {
     if (activity.party_size > 0 && activity.party_max >= activity.party_size) {
         act.GetParty().GetSize().SetCurrentSize(activity.party_size);
         act.GetParty().GetSize().SetMaxSize(activity.party_max);
+        if (!activity.party_id.empty()) {
+            act.GetParty().SetId(activity.party_id.c_str());
+        }
     }
 
     g_discordCore->ActivityManager().UpdateActivity(act, [](discord::Result /*result*/) {});

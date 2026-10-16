@@ -371,6 +371,31 @@ void PRESENCE_GET_DATA(wotlk_rich_presence_t* out_data) {
     out_data->is_in_world = d.is_in_world ? 1 : 0;
     out_data->is_loading = d.is_loading ? 1 : 0;
     out_data->is_in_combat = d.is_in_combat ? 1 : 0;
+    out_data->is_in_group = d.is_in_group ? 1 : 0;
+    out_data->is_in_raid = d.is_in_raid ? 1 : 0;
+    out_data->party_size = d.party_size;
+    out_data->party_max = d.party_max;
+    out_data->is_in_queue = d.is_in_queue ? 1 : 0;
+    out_data->queue_state = d.queue_state;
+    out_data->start_timestamp = d.start_timestamp;
+    out_data->end_timestamp = d.end_timestamp;
+    out_data->supported_platforms = d.supported_platforms;
+}
+
+void wotlk_presence_set_queue_state(const char* state) {
+    WotlkSDK::PRESENCE::SET_QUEUE_STATE(state);
+}
+
+void wotlk_presence_set_party(uint32_t size, uint32_t max) {
+    WotlkSDK::PRESENCE::SET_PARTY(size, max);
+}
+
+void wotlk_presence_set_timestamps(int64_t start, int64_t end) {
+    WotlkSDK::PRESENCE::SET_TIMESTAMPS(start, end);
+}
+
+void wotlk_presence_set_supported_platforms(uint32_t platforms) {
+    WotlkSDK::PRESENCE::SET_SUPPORTED_PLATFORMS(platforms);
 }
 
 // LUA
@@ -397,4 +422,29 @@ int wotlk_discord_is_connected(void) {
 
 void* wotlk_discord_get_core(void) {
     return WotlkSDK::Discord::GetCore();
+}
+
+void wotlk_discord_set_state(const char* state) {
+    WotlkSDK::DISCORD::SET_STATE(state ? state : "");
+}
+
+void wotlk_discord_set_party(int party_size, int party_max) {
+    WotlkSDK::DISCORD::SET_PARTY(static_cast<uint32_t>(party_size), static_cast<uint32_t>(party_max));
+}
+
+void wotlk_discord_set_timestamps(int64_t start, int64_t end) {
+    WotlkSDK::DISCORD::SET_TIMESTAMPS(start, end);
+}
+
+void wotlk_discord_set_supported_platforms(uint32_t platforms) {
+    WotlkSDK::DISCORD::SET_SUPPORTED_PLATFORMS(platforms);
+}
+
+void wotlk_discord_set_queue(const char* queue_name, int party_size, int party_max, int64_t est_end_timestamp) {
+    WotlkSDK::DISCORD::SET_QUEUE(
+        queue_name ? queue_name : "",
+        static_cast<uint32_t>(party_size),
+        static_cast<uint32_t>(party_max),
+        est_end_timestamp
+    );
 }

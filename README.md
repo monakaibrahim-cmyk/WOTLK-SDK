@@ -179,8 +179,17 @@ Automates account authentication, realmlist configuration, realm selection, and 
    - `WOTLK_LOGIN`, `WOTLK_PASSWORD`, `WOTLK_REALMLIST`, `WOTLK_REALMNAME`, `WOTLK_CHARACTER`
 
 ### Discord Social SDK & Rich Presence (`WOTLK-SDK/Discord.h`)
-The Discord subsystem supports both official **Discord Social SDK** (`discord-game-sdk`) via **vcpkg** and a native zero-dependency Windows Named Pipe IPC fallback:
+The Discord subsystem supports both the official **Discord Social SDK / Partner SDK** (`discord_partner_sdk.lib` / `discord-game-sdk`) and a native zero-dependency Windows Named Pipe IPC fallback:
 
+* **Discord Social / Partner SDK Paths**:
+  Configure SDK paths directly via CMake or drop into `lib/discord_social_sdk`:
+  ```cmake
+  set(DISCORD_SDK_ROOT "${CMAKE_SOURCE_DIR}/lib/discord_social_sdk")
+  set(DISCORD_SDK_LIB_DIR "${DISCORD_SDK_ROOT}/lib/release")
+  set(DISCORD_SDK_BIN_DIR "${DISCORD_SDK_ROOT}/bin/release")
+  set(DISCORD_SDK_INCLUDE_DIR "${DISCORD_SDK_ROOT}/include")
+  ```
+  Targets `discord_partner_sdk.lib` and `discord_partner_sdk.dll` across platforms (Windows x86, macOS, Linux).
 * **vcpkg Integration (`vcpkg.json`)**:
   - The repository includes a `vcpkg.json` manifest specifying the `discord-game-sdk` port.
   - Automatically locates headers and `discord_game_sdk.lib` during CMake configuration.
@@ -188,8 +197,19 @@ The Discord subsystem supports both official **Discord Social SDK** (`discord-ga
 * **Full Social SDK Core Access (`DISCORD::GET_CORE()`)**:
   - Cast the returned `void*` to `discord::Core*` to access multiplayer lobbies, voice chat, friends lists, and user account linking.
 * **Zero-Dependency Fallback**:
-  - If built without vcpkg or without `discord_game_sdk.dll`, the SDK automatically switches to its built-in Windows Named Pipe client (`\\.\pipe\discord-ipc-0`..`9`).
-* **Live State Tracking**: Character name, level, race, class, zone, subzone, continent, game state (login, realm select, character select, in-world), party size, and elapsed timestamps.
+  - If built without external SDKs, WotlkSDK automatically connects directly to the local Discord client via Windows Named Pipes (`\\.\pipe\discord-ipc-0`..`9`).
+* **Rich Presence & Queue State Support**:
+  - **Dynamic State**: Supports queue states like `"Dungeon Queue"`, `"Raid Queue"`, `"Battleground Queue"`, or active zone/subzone.
+  - **Party Sizing**: Native party count representation (e.g., `1/4`, `4/8`, `5/5`, `10/10`, `25/25`).
+  - **Timestamps**: Activity start timestamp and optional countdown/queue ETA end timestamp.
+  - **Supported Platforms**: Configurable platform bitmask (Desktop = 1, Android = 2, iOS = 4).
+  - **Helper Methods**:
+    ```cpp
+    DISCORD::SET_QUEUE("Dungeon Queue", 1, 4, queueEtaTimestamp);
+    DISCORD::SET_QUEUE("Raid Queue", 4, 8, queueEtaTimestamp);
+    DISCORD::SET_SUPPORTED_PLATFORMS(1); // Desktop
+    DISCORD::UPDATE();
+    ```
 * **Compile-Time Auto-Start**: Define `DISCORD_RICH_PRESENCE` and `DISCORD_CLIENT_ID` before including `<WOTLK-SDK/wotlkcpp.h>`.
 * **C++ Template Overrides**: Customize presence formatting using `DISCORD::SET_FORMATTER<CustomFormatter>()`.
 
@@ -255,8 +275,8 @@ cmake --build build --config Release
 
 Outputs:
 - Static Library: `build/bin/Release/WotlkSDK.lib`, `build/bin/Debug/WotlkSDK.lib`
-- Sample Mods: `build/bin/Release/SampleMod.dll`, `build/bin/Debug/SampleMod.dll`
-- Discord Runtime: `build/bin/Release/discord_game_sdk.dll`
+- Sample Mods: `build/bin/Release/SampleMod.dll`, `SampleModC.dll`, `DiscordSDKExample.dll`
+- Discord Runtime: `build/bin/Release/discord_partner_sdk.dll` / `discord_game_sdk.dll`
 
 ### Generating Complete Doxygen Documentation
 Run Doxygen from the repository root to produce complete HTML documentation:

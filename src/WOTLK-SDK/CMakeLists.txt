@@ -66,17 +66,26 @@ if (WOTLK_SDK_HAVE_DISCORD_GAME_SDK)
         target_link_libraries(${PROJECT_NAME} PRIVATE ${DISCORD_GAME_SDK_CPP_LIB})
     endif()
 
-    find_file(DISCORD_GAME_SDK_DLL
-        NAMES discord_game_sdk.dll
-        PATH_SUFFIXES bin
-    )
-    if (DISCORD_GAME_SDK_DLL)
+    if (DISCORD_GAME_SDK_DLL AND EXISTS "${DISCORD_GAME_SDK_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${DISCORD_GAME_SDK_DLL}"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-            COMMENT "Copying discord_game_sdk.dll to target directory"
+            COMMENT "Copying Discord Social SDK dll to target directory"
         )
+    else()
+        find_file(DISCORD_SEARCHED_DLL
+            NAMES discord_partner_sdk.dll discord_game_sdk.dll
+            PATH_SUFFIXES bin
+        )
+        if (DISCORD_SEARCHED_DLL)
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DISCORD_SEARCHED_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+                COMMENT "Copying Discord Social SDK dll to target directory"
+            )
+        endif()
     endif()
 endif()
 

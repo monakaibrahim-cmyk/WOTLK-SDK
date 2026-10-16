@@ -51,33 +51,75 @@ endif()
 # Dynamic DLLs are reserved for consumer mods and custom modules.
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "WotlkSDK is static only" FORCE)
 option(WOTLK_SDK_BUILD_EXAMPLES "Build WotlkSDK sample projects (shared DLLs)" ON)
-option(WOTLK_SDK_DISCORD_SOCIAL_SDK "Enable Discord Social SDK (discord-game-sdk) integration via vcpkg" ON)
+option(WOTLK_SDK_DISCORD_SOCIAL_SDK "Enable Discord Social SDK (discord_partner_sdk / discord_game_sdk) integration" ON)
 
-# Discord Social SDK Integration (via vcpkg)
+# Discord Social SDK / Partner SDK Integration
 if (WOTLK_SDK_DISCORD_SOCIAL_SDK)
-    find_path(DISCORD_GAME_SDK_INCLUDE_DIR
-        NAMES "discord.h" "discord-game-sdk/discord.h"
-        PATH_SUFFIXES "discord-game-sdk" "include/discord-game-sdk"
-    )
+    if (NOT DEFINED DISCORD_SDK_ROOT)
+        set(DISCORD_SDK_ROOT "${CMAKE_SOURCE_DIR}/lib/discord_social_sdk" CACHE PATH "Path to Discord Social SDK root directory")
+    endif()
 
-    find_library(DISCORD_GAME_SDK_LIB
-        NAMES discord_game_sdk discord_game_sdk.dll.lib
-        PATH_SUFFIXES lib
-    )
+    if (NOT DEFINED DISCORD_SDK_LIB_DIR)
+        set(DISCORD_SDK_LIB_DIR "${DISCORD_SDK_ROOT}/lib/release" CACHE PATH "Path to Discord Social SDK lib directory")
+    endif()
 
-    find_library(DISCORD_GAME_SDK_CPP_LIB
-        NAMES discord_game_sdk_cpp
-        PATH_SUFFIXES lib
-    )
+    if (NOT DEFINED DISCORD_SDK_BIN_DIR)
+        set(DISCORD_SDK_BIN_DIR "${DISCORD_SDK_ROOT}/bin/release" CACHE PATH "Path to Discord Social SDK bin directory")
+    endif()
 
-    if (DISCORD_GAME_SDK_INCLUDE_DIR AND DISCORD_GAME_SDK_LIB)
-        message(STATUS "Discord Social SDK (Game SDK) detected via vcpkg:")
-        message(STATUS "  Include: ${DISCORD_GAME_SDK_INCLUDE_DIR}")
-        message(STATUS "  Library: ${DISCORD_GAME_SDK_LIB}")
+    if (NOT DEFINED DISCORD_SDK_INCLUDE_DIR)
+        set(DISCORD_SDK_INCLUDE_DIR "${DISCORD_SDK_ROOT}/include" CACHE PATH "Path to Discord Social SDK include directory")
+    endif()
+
+    # Platform-specific Social SDK library paths
+    if(WIN32)
+        set(DISCORD_LIB_PATH "${DISCORD_SDK_LIB_DIR}/discord_partner_sdk.lib")
+        set(DISCORD_SHARED_LIB "${DISCORD_SDK_BIN_DIR}/discord_partner_sdk.dll")
+    elseif(APPLE)
+        set(DISCORD_LIB_PATH "${DISCORD_SDK_LIB_DIR}/libdiscord_partner_sdk.dylib")
+        set(DISCORD_SHARED_LIB "${DISCORD_SDK_LIB_DIR}/libdiscord_partner_sdk.dylib")
+    else() # Linux
+        set(DISCORD_LIB_PATH "${DISCORD_SDK_LIB_DIR}/libdiscord_partner_sdk.so")
+        set(DISCORD_SHARED_LIB "${DISCORD_SDK_LIB_DIR}/libdiscord_partner_sdk.so")
+    endif()
+
+    if (EXISTS "${DISCORD_LIB_PATH}")
+        message(STATUS "Discord Social SDK (Partner SDK) detected:")
+        message(STATUS "  Include: ${DISCORD_SDK_INCLUDE_DIR}")
+        message(STATUS "  Library: ${DISCORD_LIB_PATH}")
         set(WOTLK_SDK_HAVE_DISCORD_GAME_SDK TRUE CACHE INTERNAL "Discord Social SDK found")
+        set(DISCORD_GAME_SDK_INCLUDE_DIR "${DISCORD_SDK_INCLUDE_DIR}" CACHE INTERNAL "")
+        set(DISCORD_GAME_SDK_LIB "${DISCORD_LIB_PATH}" CACHE INTERNAL "")
+        set(DISCORD_GAME_SDK_DLL "${DISCORD_SHARED_LIB}" CACHE INTERNAL "")
     else()
-        message(STATUS "Discord Social SDK not found in vcpkg; using native zero-dependency Windows Named Pipe IPC backend.")
-        set(WOTLK_SDK_HAVE_DISCORD_GAME_SDK FALSE CACHE INTERNAL "Discord Social SDK found")
+        # Fallback to search in vcpkg or system
+        find_path(DISCORD_VCPKG_INCLUDE_DIR
+            NAMES "discord.h" "discord-game-sdk/discord.h"
+            PATH_SUFFIXES "discord-game-sdk" "include/discord-game-sdk"
+        )
+
+        find_library(DISCORD_VCPKG_LIB
+            NAMES discord_partner_sdk discord_game_sdk discord_game_sdk.dll.lib
+            PATH_SUFFIXES lib
+        )
+
+        find_library(DISCORD_VCPKG_CPP_LIB
+            NAMES discord_game_sdk_cpp
+            PATH_SUFFIXES lib
+        )
+
+        if (DISCORD_VCPKG_INCLUDE_DIR AND DISCORD_VCPKG_LIB)
+            message(STATUS "Discord Social SDK detected via vcpkg/system:")
+            message(STATUS "  Include: ${DISCORD_VCPKG_INCLUDE_DIR}")
+            message(STATUS "  Library: ${DISCORD_VCPKG_LIB}")
+            set(WOTLK_SDK_HAVE_DISCORD_GAME_SDK TRUE CACHE INTERNAL "Discord Social SDK found")
+            set(DISCORD_GAME_SDK_INCLUDE_DIR "${DISCORD_VCPKG_INCLUDE_DIR}" CACHE INTERNAL "")
+            set(DISCORD_GAME_SDK_LIB "${DISCORD_VCPKG_LIB}" CACHE INTERNAL "")
+            set(DISCORD_GAME_SDK_CPP_LIB "${DISCORD_VCPKG_CPP_LIB}" CACHE INTERNAL "")
+        else()
+            message(STATUS "Discord Social SDK not found; using native zero-dependency Windows Named Pipe IPC backend.")
+            set(WOTLK_SDK_HAVE_DISCORD_GAME_SDK FALSE CACHE INTERNAL "Discord Social SDK found")
+        endif()
     endif()
 endif()
 
