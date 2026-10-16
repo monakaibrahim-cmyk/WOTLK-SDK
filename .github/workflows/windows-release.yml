@@ -1,0 +1,51 @@
+name: CMake Windows Win32 Release
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows-win32-release:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Latest Release Tag
+        id: find_tag
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: ${{ github.repository }}
+          releases-only: true
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure and build
+        run: |
+          $buildDir = "${{ github.workspace }}\build"
+          cmake -S "${{ github.workspace }}" -B $buildDir -G "Visual Studio 17 2022" -A Win32 -T host=x64
+          cmake --build $buildDir --config ${{ env.BUILD_TYPE }} -- /m
+
+      - name: Package release
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          if (-not $tag) { $tag = "${{ steps.find_tag.outputs.tag }}" }
+
+          $staging = "${{ github.workspace }}\staging"
+          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+
+          Copy-Item "${{ github.workspace }}\build\bin\Release\WotlkSDK.dll" "$staging\"
+          Copy-Item "${{ github.workspace }}\licenses" "$staging\licenses" -Recurse
+
+          Compress-Archive -Path "$staging\*" -DestinationPath "${{ github.workspace }}\WotlkSDK_$tag.zip" -Force
+          
+      - name: Upload Zip to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.workspace }}/WotlkSDK_*.zip
+          tag_name: ${{ github.event.release.tag_name || steps.find_tag.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
