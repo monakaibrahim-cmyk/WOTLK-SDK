@@ -16,9 +16,6 @@ on:
 permissions:
   contents: write
 
-env:
-  BUILD_TYPE: Release
-
 jobs:
   build-and-release:
     runs-on: windows-2022
@@ -43,73 +40,94 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Configure CMake (Win32 & x64, Static & Shared)
+      - name: Configure CMake Projects
         shell: pwsh
         run: |
-          # 1. Win32 Static Library (.lib)
+          # 1. Win32 Static (Debug & Release)
           cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x86-static" `
             -G "Visual Studio 17 2022" -A Win32 -T host=x64 `
             -DBUILD_SHARED_LIBS=OFF -DWOTLK_SDK_BUILD_EXAMPLES=ON
 
-          # 2. Win32 Shared Library (.dll)
+          # 2. Win32 Shared (Debug & Release)
           cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x86-shared" `
             -G "Visual Studio 17 2022" -A Win32 -T host=x64 `
             -DBUILD_SHARED_LIBS=ON -DWOTLK_SDK_BUILD_EXAMPLES=ON
 
-          # 3. x64 Static Library (.lib)
+          # 3. x64 Static (Debug & Release)
           cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x64-static" `
             -G "Visual Studio 17 2022" -A x64 -T host=x64 `
             -DBUILD_SHARED_LIBS=OFF -DWOTLK_SDK_BUILD_EXAMPLES=OFF
 
-          # 4. x64 Shared Library (.dll)
+          # 4. x64 Shared (Debug & Release)
           cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x64-shared" `
             -G "Visual Studio 17 2022" -A x64 -T host=x64 `
             -DBUILD_SHARED_LIBS=ON -DWOTLK_SDK_BUILD_EXAMPLES=OFF
 
-      - name: Build All Architectures & Configurations
+      - name: Build Debug & Release Configurations
         shell: pwsh
         run: |
-          cmake --build "${{ github.workspace }}/build-x86-static" --config ${{ env.BUILD_TYPE }} --parallel
-          cmake --build "${{ github.workspace }}/build-x86-shared" --config ${{ env.BUILD_TYPE }} --parallel
-          cmake --build "${{ github.workspace }}/build-x64-static" --config ${{ env.BUILD_TYPE }} --parallel
-          cmake --build "${{ github.workspace }}/build-x64-shared" --config ${{ env.BUILD_TYPE }} --parallel
+          # Build Win32 Static (Debug + Release)
+          cmake --build "${{ github.workspace }}/build-x86-static" --config Debug --parallel
+          cmake --build "${{ github.workspace }}/build-x86-static" --config Release --parallel
+
+          # Build Win32 Shared (Debug + Release)
+          cmake --build "${{ github.workspace }}/build-x86-shared" --config Debug --parallel
+          cmake --build "${{ github.workspace }}/build-x86-shared" --config Release --parallel
+
+          # Build x64 Static (Debug + Release)
+          cmake --build "${{ github.workspace }}/build-x64-static" --config Debug --parallel
+          cmake --build "${{ github.workspace }}/build-x64-static" --config Release --parallel
+
+          # Build x64 Shared (Debug + Release)
+          cmake --build "${{ github.workspace }}/build-x64-shared" --config Debug --parallel
+          cmake --build "${{ github.workspace }}/build-x64-shared" --config Release --parallel
 
       - name: Package SDK Distribution Archive
         shell: pwsh
         run: |
           $tag = "${{ steps.tag_info.outputs.TAG }}"
           $staging = "${{ github.workspace }}/staging"
+
+          # Directory hierarchy for Multi-Arch Debug and Release
           New-Item -ItemType Directory -Force -Path "$staging/include" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/lib/x86" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/lib/x64" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/bin/x86" | Out-Null
-          New-Item -ItemType Directory -Force -Path "$staging/bin/x64" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/x86/Debug" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/x86/Release" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/x64/Debug" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/x64/Release" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/bin/x86/Debug" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/bin/x86/Release" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/bin/x64/Debug" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/bin/x64/Release" | Out-Null
 
           # Copy Public Headers
           Copy-Item "${{ github.workspace }}/include/*" "$staging/include" -Recurse -Force
           Copy-Item "${{ github.workspace }}/tools/HOOK-KIT" "$staging/include/HOOK-KIT" -Recurse -Force
 
-          # Copy Libraries (.lib)
-          if (Test-Path "${{ github.workspace }}/build-x86-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib") {
-            Copy-Item "${{ github.workspace }}/build-x86-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib" "$staging/lib/x86/" -Force
+          # Copy Static Libraries (.lib)
+          # x86
+          if (Test-Path "${{ github.workspace }}/build-x86-static/bin/Debug/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86-static/bin/Debug/WotlkSDK.lib" "$staging/lib/x86/Debug/" -Force
           }
-          if (Test-Path "${{ github.workspace }}/build-x64-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib") {
-            Copy-Item "${{ github.workspace }}/build-x64-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib" "$staging/lib/x64/" -Force
+          if (Test-Path "${{ github.workspace }}/build-x86-static/bin/Release/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86-static/bin/Release/WotlkSDK.lib" "$staging/lib/x86/Release/" -Force
+          }
+          # x64
+          if (Test-Path "${{ github.workspace }}/build-x64-static/bin/Debug/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x64-static/bin/Debug/WotlkSDK.lib" "$staging/lib/x64/Debug/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x64-static/bin/Release/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x64-static/bin/Release/WotlkSDK.lib" "$staging/lib/x64/Release/" -Force
           }
 
-          # Copy Binaries (.dll) & Sample Mods
-          if (Test-Path "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll" "$staging/bin/x86/" -Force
-          }
-          if (Test-Path "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleMod.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleMod.dll" "$staging/bin/x86/" -Force
-          }
-          if (Test-Path "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleModC.dll") {
-            Copy-Item "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleModC.dll" "$staging/bin/x86/" -Force
-          }
-          if (Test-Path "${{ github.workspace }}/build-x64-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll") {
-            Copy-Item "${{ github.workspace }}/build-x64-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll" "$staging/bin/x64/" -Force
-          }
+          # Copy Shared Binaries (.dll, .pdb, sample mods)
+          # x86 Debug
+          Get-ChildItem -Path "${{ github.workspace }}/build-x86-shared/bin/Debug" -Include *.dll,*.pdb -Recurse | Copy-Item -Destination "$staging/bin/x86/Debug/" -Force
+          # x86 Release
+          Get-ChildItem -Path "${{ github.workspace }}/build-x86-shared/bin/Release" -Include *.dll,*.pdb -Recurse | Copy-Item -Destination "$staging/bin/x86/Release/" -Force
+          # x64 Debug
+          Get-ChildItem -Path "${{ github.workspace }}/build-x64-shared/bin/Debug" -Include *.dll,*.pdb -Recurse | Copy-Item -Destination "$staging/bin/x64/Debug/" -Force
+          # x64 Release
+          Get-ChildItem -Path "${{ github.workspace }}/build-x64-shared/bin/Release" -Include *.dll,*.pdb -Recurse | Copy-Item -Destination "$staging/bin/x64/Release/" -Force
 
           # Copy Documentation, Manifest & Licenses
           Copy-Item "${{ github.workspace }}/README.md" "$staging/" -Force
@@ -120,7 +138,7 @@ jobs:
           # Create Distribution Zip Archive
           $zipName = "WotlkSDK_$tag.zip"
           Compress-Archive -Path "$staging/*" -DestinationPath "${{ github.workspace }}/$zipName" -Force
-          Write-Host "Created release archive: $zipName"
+          Write-Host "Created release distribution archive: $zipName"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -132,12 +150,19 @@ jobs:
             ## WotlkSDK Release ${{ steps.tag_info.outputs.TAG }}
             Software Development Kit for World of Warcraft 3.3.5a (Build 12340).
 
-            ### Included Artifacts
-            - **Static Libraries (`WotlkSDK.lib`)**: x86 (Win32) & x64
-            - **Shared DLLs (`WotlkSDK.dll`)**: x86 (Win32) & x64
-            - **Sample Mods**: `SampleMod.dll` (C++23) & `SampleModC.dll` (Pure C)
-            - **Headers**: Complete `<WOTLK-SDK/wotlkcpp.h>` and `<WOTLK-SDK/wotlkc.h>` APIs
-            - **Subsystems**: Threaded Discord Social SDK, HOOK-KIT, Auto-Login, and engine registries.
+            ### Included Builds
+            - **Release Configurations** (`/MT` static runtime):
+              - Static Libraries: `lib/x86/Release/WotlkSDK.lib` & `lib/x64/Release/WotlkSDK.lib`
+              - Shared DLLs & Symbols: `bin/x86/Release/WotlkSDK.dll` (+ `.pdb`)
+              - Sample Mods: `SampleMod.dll` (C++23) & `SampleModC.dll` (Pure C)
+            - **Debug Configurations** (`/MTd` with full symbols):
+              - Static Libraries: `lib/x86/Debug/WotlkSDK.lib` & `lib/x64/Debug/WotlkSDK.lib`
+              - Shared DLLs & Symbols: `bin/x86/Debug/WotlkSDK.dll` (+ `.pdb`)
+              - Sample Mods: `SampleMod.dll` & `SampleModC.dll`
+            - **Headers**:
+              - `<WOTLK-SDK/wotlkcpp.h>` (Modern C++23 entrypoint)
+              - `<WOTLK-SDK/wotlkc.h>` (Native pure C entrypoint)
+              - Subsystems: Threaded Discord Social SDK, HOOK-KIT, Auto-Login, and engine registries.
           draft: false
           prerelease: false
           generate_release_notes: true
