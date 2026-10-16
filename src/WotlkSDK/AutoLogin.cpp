@@ -15,6 +15,8 @@
 #include "Utils.h"
 #include "WotlkSDK/Extensions.h"
 
+#include <cctype>
+
 namespace {
 inline constexpr utils::Accessor<std::vector<std::string>, struct ArgsTag> ARGS;
 
@@ -31,6 +33,35 @@ std::string_view flagName(std::string_view arg) {
     return arg;
 }
 
+bool equalsIgnoreCase(std::string_view a, std::string_view b) {
+    if (a.size() != b.size()) { return false; }
+    return std::ranges::equal(a, b, [](char c1, char c2) {
+        return std::tolower(static_cast<unsigned char>(c1)) == std::tolower(static_cast<unsigned char>(c2));
+    });
+}
+
+bool matchesParam(std::string_view flag, std::string_view item) {
+    if (equalsIgnoreCase(flag, item)) { return true; }
+    if (item == "login") {
+        return equalsIgnoreCase(flag, "username") || equalsIgnoreCase(flag, "user") ||
+               equalsIgnoreCase(flag, "email") || equalsIgnoreCase(flag, "account");
+    }
+    if (item == "password") {
+        return equalsIgnoreCase(flag, "pass");
+    }
+    if (item == "realmlist") {
+        return equalsIgnoreCase(flag, "realmlist.wtf") || equalsIgnoreCase(flag, "server") ||
+               equalsIgnoreCase(flag, "host");
+    }
+    if (item == "realmname") {
+        return equalsIgnoreCase(flag, "realm");
+    }
+    if (item == "character") {
+        return equalsIgnoreCase(flag, "char");
+    }
+    return false;
+}
+
 const std::string* getParam(std::string_view item, const char* env_var = nullptr) {
     // 1. Programmatic configuration takes highest priority
     if (item == "login" && !g_configuredLogin.empty()) { return &g_configuredLogin; }
@@ -39,11 +70,13 @@ const std::string* getParam(std::string_view item, const char* env_var = nullptr
     if (item == "realmname" && !g_configuredRealmName.empty()) { return &g_configuredRealmName; }
     if (item == "character" && !g_configuredCharacter.empty()) { return &g_configuredCharacter; }
 
-    // 2. Command line arguments (-login, -password, etc.)
+    // 2. Command line arguments (-login, -password, -realmlist, -realmname, etc.)
     if (!item.empty() && !ARGS->empty()) {
         const std::span tail = std::span(*ARGS).subspan(1);
         const auto key = std::ranges::adjacent_find(
-            tail, [item](const std::string& arg, const std::string&) { return flagName(arg) == item; });
+            tail, [item](const std::string& arg, const std::string&) {
+                return matchesParam(flagName(arg), item);
+            });
         if (key != tail.end()) { return &*std::next(key); }
     }
 
