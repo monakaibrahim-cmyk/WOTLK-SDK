@@ -19,14 +19,40 @@ add_library(WotlkSDK::WotlkSDK ALIAS ${PROJECT_NAME})
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/tools>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/deps/unordered_dense/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}
+)
+
+target_compile_definitions(
+    ${PROJECT_NAME} PUBLIC
+        WIN32_LEAN_AND_MEAN
+        NOMINMAX
+        $<$<EQUAL:${CMAKE_SIZEOF_VOID_P},4>:_X86_>
+        $<$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>:_AMD64_>
+        _CRT_SECURE_NO_WARNINGS
+        UNICODE
+        _UNICODE
+    PRIVATE
+        APP_NAME="${PROJECT_NAME}"
+)
+
+target_compile_options(
+    ${PROJECT_NAME} PRIVATE
+        /utf-8
+        /W3
+        /wd4458
+        /Gw
+        $<$<EQUAL:${CMAKE_SIZEOF_VOID_P},4>:/Gd>
 )
 
 target_link_libraries(
     ${PROJECT_NAME} PUBLIC
-        WotlkSDK_Common
+        $<BUILD_INTERFACE:Hookkit>
+        $<BUILD_INTERFACE:unordered_dense::unordered_dense>
     PRIVATE
         shell32
 )
@@ -53,11 +79,6 @@ if (WOTLK_SDK_HAVE_DISCORD_GAME_SDK)
         )
     endif()
 endif()
-
-target_compile_definitions(
-    ${PROJECT_NAME} PRIVATE
-        APP_NAME="${PROJECT_NAME}"
-)
 
 # Installation & Export
 include(GNUInstallDirs)

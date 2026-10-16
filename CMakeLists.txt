@@ -81,37 +81,6 @@ endif()
 add_subdirectory(deps)
 add_subdirectory(tools)
 
-add_library(WotlkSDK_Common INTERFACE)
-
-target_include_directories(WotlkSDK_Common INTERFACE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tools"
-)
-
-target_compile_definitions(WotlkSDK_Common INTERFACE
-    WIN32_LEAN_AND_MEAN
-    NOMINMAX
-    $<$<EQUAL:${CMAKE_SIZEOF_VOID_P},4>:_X86_>
-    $<$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>:_AMD64_>
-    _CRT_SECURE_NO_WARNINGS
-    UNICODE
-    _UNICODE
-)
-
-target_compile_options(WotlkSDK_Common INTERFACE
-    /utf-8
-    /W3
-    /wd4458
-    /Gw
-    $<$<EQUAL:${CMAKE_SIZEOF_VOID_P},4>:/Gd>
-)
-
-target_link_libraries(WotlkSDK_Common INTERFACE
-    Hookkit
-    unordered_dense::unordered_dense
-)
-
 add_subdirectory(src)
 
 if (WOTLK_SDK_BUILD_EXAMPLES)
