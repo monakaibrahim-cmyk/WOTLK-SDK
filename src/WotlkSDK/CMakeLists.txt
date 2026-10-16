@@ -38,12 +38,18 @@ target_compile_definitions(
 # Installation & Export
 include(GNUInstallDirs)
 
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(WOTLK_SDK_ARCH "x64")
+else()
+    set(WOTLK_SDK_ARCH "x86")
+endif()
+
 install(
     TARGETS ${PROJECT_NAME}
     EXPORT WotlkSDKTargets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION "lib/${WOTLK_SDK_ARCH}"
+    LIBRARY DESTINATION "lib/${WOTLK_SDK_ARCH}"
+    RUNTIME DESTINATION "bin/${WOTLK_SDK_ARCH}"
 )
 
 install(

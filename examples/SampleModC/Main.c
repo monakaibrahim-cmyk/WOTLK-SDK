@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <WotlkSDK_C.h>
+#include <WOTLK-SDK/wotlkc.h>
 
 /**
  * @brief Sample Pure C WoW 3.3.5a Mod DLL using WotlkSDK Native C API.

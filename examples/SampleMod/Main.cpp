@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <WotlkSDK.h>
+#include <WOTLK-SDK/wotlkcpp.h>
 
 /**
  * @brief Sample WoW 3.3.5a Mod DLL demonstrating WotlkSDK usage.
