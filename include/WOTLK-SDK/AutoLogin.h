@@ -8,7 +8,7 @@
  * configuring realmlist destinations, and auto-entering the world with a chosen character.
  */
 
-#include <hookkit/transaction.h>
+#include <HOOK-KIT/transaction.h>
 #include <string_view>
 
 #include "Defines.h"

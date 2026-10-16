@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hookkit/hookkit.h>
+#include <HOOK-KIT/hookkit.h>
 
 namespace OS {
 inline HWND getGameWindow() { return *reinterpret_cast<HWND*>(0x00D41620); }

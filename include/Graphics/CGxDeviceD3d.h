@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d9.h>
-#include <hookkit/hook.h>
+#include <HOOK-KIT/hook.h>
 
 #include <cstddef>
 #include <cstdint>

@@ -1,6 +1,6 @@
 #include "Extensions.h"
 
-#include <hookkit/hookkit.h>
+#include <HOOK-KIT/hookkit.h>
 
 #include <algorithm>
 #include <cstddef>

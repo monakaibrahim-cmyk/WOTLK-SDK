@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hookkit/hook.h>
+#include <HOOK-KIT/hook.h>
 
 #include <cstdint>
 

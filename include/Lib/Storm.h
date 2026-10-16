@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hookkit/hookkit.h>
+#include <HOOK-KIT/hookkit.h>
 #include <windows.h>
 
 #include <cstdint>

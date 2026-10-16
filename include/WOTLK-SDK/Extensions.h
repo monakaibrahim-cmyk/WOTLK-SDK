@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ankerl/unordered_dense.h>
-#include <hookkit/accessor.h>
-#include <hookkit/transaction.h>
+#include <HOOK-KIT/accessor.h>
+#include <HOOK-KIT/transaction.h>
 
 #include <algorithm>
 #include <array>
