@@ -91,17 +91,4 @@ void Shutdown() {
 
 }  // namespace WotlkSDK
 
-#if defined(WOTLK_SDK_BUILD_SHARED) || defined(WOTLK_SDK_SHARED)
-/**
- * @brief Dynamic link library entry point, active only when compiling WotlkSDK as a shared DLL.
- */
-BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
-    if (reason == DLL_PROCESS_ATTACH) {
-        DisableThreadLibraryCalls(module);
-        WotlkSDK::Initialize();
-    } else if (reason == DLL_PROCESS_DETACH) {
-        WotlkSDK::Shutdown();
-    }
-    return TRUE;
 }
-#endif

@@ -44,8 +44,10 @@ if (ipo_supported)
 endif()
 
 # Build Options
-option(BUILD_SHARED_LIBS "Build WotlkSDK as a shared library (.dll) instead of static (.lib)" OFF)
-option(WOTLK_SDK_BUILD_EXAMPLES "Build WotlkSDK sample projects" ON)
+# Note: WotlkSDK is strictly built as a static library (.lib).
+# Dynamic DLLs are reserved for consumer mods and custom modules.
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "WotlkSDK is static only" FORCE)
+option(WOTLK_SDK_BUILD_EXAMPLES "Build WotlkSDK sample projects (shared DLLs)" ON)
 option(WOTLK_SDK_DISCORD_SOCIAL_SDK "Enable Discord Social SDK (discord-game-sdk) integration via vcpkg" ON)
 
 # Discord Social SDK Integration (via vcpkg)

@@ -2,8 +2,10 @@ project(WotlkSDK)
 
 file(GLOB_RECURSE HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 
+# WotlkSDK is strictly built as a static library (.lib).
+# Dynamic DLLs are reserved for consumer mods and custom modules.
 add_library(
-    ${PROJECT_NAME}
+    ${PROJECT_NAME} STATIC
         ${HEADERS}
         "Entry.cpp"
         "Extensions.h" "Extensions.cpp"
@@ -55,8 +57,6 @@ endif()
 target_compile_definitions(
     ${PROJECT_NAME} PRIVATE
         APP_NAME="${PROJECT_NAME}"
-        $<$<BOOL:${BUILD_SHARED_LIBS}>:WOTLK_SDK_BUILD_SHARED>
-        $<$<BOOL:${BUILD_SHARED_LIBS}>:WOTLK_SDK_EXPORTS>
 )
 
 # Installation & Export
@@ -73,7 +73,6 @@ install(
     EXPORT WotlkSDKTargets
     ARCHIVE DESTINATION "lib/${WOTLK_SDK_ARCH}"
     LIBRARY DESTINATION "lib/${WOTLK_SDK_ARCH}"
-    RUNTIME DESTINATION "bin/${WOTLK_SDK_ARCH}"
 )
 
 install(

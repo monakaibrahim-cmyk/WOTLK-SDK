@@ -31,15 +31,12 @@ The SDK provides dedicated, cleanly separated entrypoints for C++ and pure C con
 #include <WOTLK-SDK/wotlkc.h>
 ```
 
-### 2. Static Library (`.lib`) vs Shared DLL (`.dll`)
-* **Static Library (`WotlkSDK.lib`, default & recommended)**:
-  - Best for custom mods, hook DLLs, and injection loaders.
-  - Links directly into your consumer DLL/executable without shipping external runtime libraries.
-  - Exposes `WotlkSDK::Initialize()`, `WotlkSDK::IsInitialized()`, and `WotlkSDK::Shutdown()`.
-  - Does not define `DllMain`, preventing entry point collisions with consumer modules.
-* **Shared Library (`WotlkSDK.dll`)**:
-  - Built by passing `-DBUILD_SHARED_LIBS=ON` to CMake.
-  - Automatically initializes on `DLL_PROCESS_ATTACH` and shuts down on `DLL_PROCESS_DETACH` (ideal for standalone injection).
+### 2. Static Library Architecture (`.lib` Only)
+* **Static Library (`WotlkSDK.lib`)**:
+  - WotlkSDK is built exclusively as a static library (`.lib`). Dynamic DLLs are reserved for consumer mods and custom loaders (e.g., `SampleMod.dll`), not the SDK itself.
+  - Statically links directly into your custom mod DLL, eliminating external SDK runtime DLL distribution requirements.
+  - Exposes explicit lifecycle control: `WotlkSDK::Initialize()`, `WotlkSDK::IsInitialized()`, and `WotlkSDK::Shutdown()`.
+  - Does not define `DllMain`, preventing entrypoint collisions with consumer mod DLLs.
 
 ### 3. Naming Conventions
 * **Namespaces, Classes, and Structs**: formatted in `UpperCamelCase` (e.g., `WotlkSDK`, `ObjectMgr`, `NetClient`, `GameUI`, `Login`, `Storm`, `Lua`, `ClientDB`, `AutoLogin`, `Extensions`, `Discord`, `HookKit`).
