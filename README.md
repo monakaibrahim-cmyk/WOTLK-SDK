@@ -69,6 +69,36 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID) {
 }
 ```
 
+### Pure C DLL Example (`Main.c`)
+
+```c
+#include <WotlkSDK_C.h>
+#include <windows.h>
+
+static void on_frame(void) {
+    /* Pure C per-frame game tick */
+}
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+    (void)lpReserved;
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(hModule);
+
+        /* Optional auto-login */
+        wotlk_autologin_configure("username", "password", "logon.example.com", "Realm", "Character");
+
+        /* Initialize SDK */
+        if (!wotlk_sdk_initialize(5000)) {
+            return FALSE;
+        }
+
+        /* Register callbacks and CVars in pure C */
+        wotlk_on_update_add(on_frame);
+    }
+    return TRUE;
+}
+```
+
 ---
 
 ## Features

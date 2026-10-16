@@ -70,9 +70,47 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID) {
 }
 ```
 
+```
+
 ---
 
-## 3. Building
+## 3. Pure C DLL Integration (`.c`)
+
+If your project is written in pure C (C99/C11/C17/C23) with no C++ compiler or STL:
+
+Include `<WotlkSDK_C.h>`:
+
+```c
+#include <WotlkSDK_C.h>
+#include <windows.h>
+
+static void on_frame(void) {
+    /* Pure C update tick */
+}
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+    (void)lpReserved;
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(hModule);
+
+        /* 1. Optional: Auto-login */
+        wotlk_autologin_configure("user", "pass", "logon.example.com", "Realm", "Character");
+
+        /* 2. Initialize SDK */
+        if (!wotlk_sdk_initialize(5000)) {
+            return FALSE;
+        }
+
+        /* 3. Register callbacks */
+        wotlk_on_update_add(on_frame);
+    }
+    return TRUE;
+}
+```
+
+---
+
+## 4. Building
 
 Configure using a 32-bit x86 Visual Studio 2022 generator:
 

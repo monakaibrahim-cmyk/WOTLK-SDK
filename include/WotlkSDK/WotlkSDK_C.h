@@ -1,0 +1,184 @@
+#ifndef WOTLK_SDK_C_H
+#define WOTLK_SDK_C_H
+
+/**
+ * @file WotlkSDK_C.h
+ * @brief Native Pure C API for WotlkSDK (World of Warcraft 3.3.5a build 12340).
+ *
+ * This header can be directly included in pure C (C99/C11/C17/C23) DLL projects.
+ * It exposes an extern "C" ABI with no C++ runtime or STL dependencies.
+ */
+
+#include <stdint.h>
+#include <stddef.h>
+
+#if defined(_WIN32)
+    #if defined(WOTLK_SDK_BUILD_SHARED) || defined(WOTLK_SDK_SHARED)
+        #if defined(WOTLK_SDK_EXPORTS)
+            #define WOTLK_C_API __declspec(dllexport)
+        #else
+            #define WOTLK_C_API __declspec(dllimport)
+        #endif
+    #else
+        #define WOTLK_C_API
+    #endif
+#else
+    #define WOTLK_C_API
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+/* Version and Build Information                                             */
+/* ========================================================================= */
+#define WOTLK_SDK_C_VERSION_MAJOR 1
+#define WOTLK_SDK_C_VERSION_MINOR 0
+#define WOTLK_SDK_C_VERSION_PATCH 0
+#define WOTLK_SDK_C_VERSION_STRING "1.0.0"
+
+#define WOTLK_SDK_C_TARGET_WOW_BUILD 12340
+#define WOTLK_SDK_C_TARGET_WOW_VERSION "3.3.5a"
+
+WOTLK_C_API const char* wotlk_sdk_get_version_string(void);
+WOTLK_C_API uint32_t    wotlk_sdk_get_version_major(void);
+WOTLK_C_API uint32_t    wotlk_sdk_get_version_minor(void);
+WOTLK_C_API uint32_t    wotlk_sdk_get_version_patch(void);
+WOTLK_C_API uint32_t    wotlk_sdk_get_target_wow_build(void);
+
+/* ========================================================================= */
+/* Core Lifecycle API                                                        */
+/* ========================================================================= */
+
+/**
+ * @brief Initializes WotlkSDK, patches engine pointers, and installs core hooks.
+ * @param retry_budget_ms Timeout for hook installation in milliseconds (default: 5000).
+ * @return 1 on success, 0 on failure.
+ */
+WOTLK_C_API int wotlk_sdk_initialize(uint32_t retry_budget_ms);
+
+/**
+ * @brief Checks if WotlkSDK has already been initialized in this process.
+ * @return 1 if initialized, 0 otherwise.
+ */
+WOTLK_C_API int wotlk_sdk_is_initialized(void);
+
+/* ========================================================================= */
+/* Auto-Login API                                                            */
+/* ========================================================================= */
+
+/**
+ * @brief Programmatically configures auto-login credentials and destination realm.
+ *
+ * Precedence hierarchy:
+ * 1. Programmatic API (this method)
+ * 2. Command-line flags (-login, -password, -realmlist, -realmname, -character)
+ * 3. Environment variables (WOTLK_LOGIN, WOTLK_PASSWORD, etc.)
+ * 4. Game defaults (realmlist.wtf and WTF/Config.wtf)
+ */
+WOTLK_C_API void wotlk_autologin_configure(
+    const char* login,
+    const char* password,
+    const char* realmlist,
+    const char* realm_name,
+    const char* character
+);
+
+WOTLK_C_API void wotlk_autologin_set_login(const char* login);
+WOTLK_C_API void wotlk_autologin_set_password(const char* password);
+WOTLK_C_API void wotlk_autologin_set_realmlist(const char* realmlist);
+WOTLK_C_API void wotlk_autologin_set_realm_name(const char* realm_name);
+WOTLK_C_API void wotlk_autologin_set_character(const char* character);
+
+WOTLK_C_API const char* wotlk_autologin_get_login(void);
+WOTLK_C_API const char* wotlk_autologin_get_password(void);
+WOTLK_C_API const char* wotlk_autologin_get_realmlist(void);
+WOTLK_C_API const char* wotlk_autologin_get_realm_name(void);
+WOTLK_C_API const char* wotlk_autologin_get_character(void);
+
+/* ========================================================================= */
+/* Lifecycle Callback System                                                 */
+/* ========================================================================= */
+typedef void (*wotlk_callback_fn)(void);
+
+WOTLK_C_API void wotlk_on_update_add(wotlk_callback_fn callback);
+WOTLK_C_API void wotlk_on_enter_add(wotlk_callback_fn callback);
+WOTLK_C_API void wotlk_on_leave_add(wotlk_callback_fn callback);
+WOTLK_C_API void wotlk_on_post_load_add(wotlk_callback_fn callback);
+WOTLK_C_API void wotlk_on_char_enum_add(wotlk_callback_fn callback);
+
+/* ========================================================================= */
+/* Console & CVar System                                                     */
+/* ========================================================================= */
+typedef void (*wotlk_cvar_change_int_fn)(int new_value, int changed);
+typedef void (*wotlk_cvar_change_float_fn)(float new_value, int changed);
+
+WOTLK_C_API void wotlk_cvar_register_int(
+    const char* name,
+    const char* desc,
+    int init_val,
+    int min_val,
+    int max_val,
+    wotlk_cvar_change_int_fn on_change
+);
+
+WOTLK_C_API void wotlk_cvar_register_float(
+    const char* name,
+    const char* desc,
+    float init_val,
+    float min_val,
+    float max_val,
+    wotlk_cvar_change_float_fn on_change
+);
+
+WOTLK_C_API int   wotlk_cvar_get_int(const char* name);
+WOTLK_C_API float wotlk_cvar_get_float(const char* name);
+WOTLK_C_API void  wotlk_cvar_set(const char* name, const char* value);
+WOTLK_C_API void  wotlk_cvar_refresh(const char* name);
+
+/* ========================================================================= */
+/* Game & Engine Queries                                                     */
+/* ========================================================================= */
+typedef uint64_t wotlk_guid_t;
+
+WOTLK_C_API wotlk_guid_t wotlk_get_player_guid(void);
+WOTLK_C_API wotlk_guid_t wotlk_get_target_guid(void);
+WOTLK_C_API int          wotlk_is_in_world(void);
+WOTLK_C_API int          wotlk_in_combat_lockdown(void);
+WOTLK_C_API void*        wotlk_get_game_window(void);
+WOTLK_C_API uint64_t     wotlk_get_async_time_ms(void);
+
+/* ========================================================================= */
+/* SCREAMING_SNAKE_CASE Macro Aliases for C Developers                       */
+/* ========================================================================= */
+#define WOTLK_SDK_INITIALIZE           wotlk_sdk_initialize
+#define WOTLK_SDK_IS_INITIALIZED       wotlk_sdk_is_initialized
+#define WOTLK_AUTOLOGIN_CONFIGURE      wotlk_autologin_configure
+#define WOTLK_AUTOLOGIN_SET_LOGIN      wotlk_autologin_set_login
+#define WOTLK_AUTOLOGIN_SET_PASSWORD   wotlk_autologin_set_password
+#define WOTLK_AUTOLOGIN_SET_REALMLIST  wotlk_autologin_set_realmlist
+#define WOTLK_AUTOLOGIN_SET_REALM_NAME wotlk_autologin_set_realm_name
+#define WOTLK_AUTOLOGIN_SET_CHARACTER  wotlk_autologin_set_character
+#define WOTLK_ON_UPDATE_ADD            wotlk_on_update_add
+#define WOTLK_ON_ENTER_ADD             wotlk_on_enter_add
+#define WOTLK_ON_LEAVE_ADD             wotlk_on_leave_add
+#define WOTLK_ON_POST_LOAD_ADD         wotlk_on_post_load_add
+#define WOTLK_ON_CHAR_ENUM_ADD         wotlk_on_char_enum_add
+#define WOTLK_CVAR_REGISTER_INT        wotlk_cvar_register_int
+#define WOTLK_CVAR_REGISTER_FLOAT      wotlk_cvar_register_float
+#define WOTLK_CVAR_GET_INT             wotlk_cvar_get_int
+#define WOTLK_CVAR_GET_FLOAT           wotlk_cvar_get_float
+#define WOTLK_CVAR_SET                 wotlk_cvar_set
+#define WOTLK_GET_PLAYER_GUID          wotlk_get_player_guid
+#define WOTLK_GET_TARGET_GUID          wotlk_get_target_guid
+#define WOTLK_IS_IN_WORLD              wotlk_is_in_world
+#define WOTLK_IN_COMBAT_LOCKDOWN       wotlk_in_combat_lockdown
+#define WOTLK_GET_GAME_WINDOW          wotlk_get_game_window
+#define WOTLK_GET_ASYNC_TIME_MS        wotlk_get_async_time_ms
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* WOTLK_SDK_C_H */
