@@ -1,51 +1,145 @@
-name: CMake Windows Win32 Release
+name: Build & Package Windows Release
+
 on:
+  push:
+    tags:
+      - 'v*'
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release version tag (e.g., v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  build-windows-win32-release:
+  build-and-release:
     runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Fetch Latest Release Tag
-        id: find_tag
-        uses: oprypin/find-latest-tag@v1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
-          releases-only: true
+          fetch-depth: 0
+
+      - name: Determine Release Tag
+        id: tag_info
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.tag_name }}"
+          if (-not $tag) { $tag = "${{ github.event.release.tag_name }}" }
+          if (-not $tag -and "${{ github.ref_type }}" -eq "tag") { $tag = "${{ github.ref_name }}" }
+          if (-not $tag) { $tag = "v1.0.0" }
+          Write-Host "Determined release tag: $tag"
+          "TAG=$tag" >> $env:GITHUB_OUTPUT
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Configure and build
+      - name: Configure CMake (Win32 & x64, Static & Shared)
+        shell: pwsh
         run: |
-          $buildDir = "${{ github.workspace }}\build"
-          cmake -S "${{ github.workspace }}" -B $buildDir -G "Visual Studio 17 2022" -A Win32 -T host=x64
-          cmake --build $buildDir --config ${{ env.BUILD_TYPE }} -- /m
+          # 1. Win32 Static Library (.lib)
+          cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x86-static" `
+            -G "Visual Studio 17 2022" -A Win32 -T host=x64 `
+            -DBUILD_SHARED_LIBS=OFF -DWOTLK_SDK_BUILD_EXAMPLES=ON
 
-      - name: Package release
+          # 2. Win32 Shared Library (.dll)
+          cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x86-shared" `
+            -G "Visual Studio 17 2022" -A Win32 -T host=x64 `
+            -DBUILD_SHARED_LIBS=ON -DWOTLK_SDK_BUILD_EXAMPLES=ON
+
+          # 3. x64 Static Library (.lib)
+          cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x64-static" `
+            -G "Visual Studio 17 2022" -A x64 -T host=x64 `
+            -DBUILD_SHARED_LIBS=OFF -DWOTLK_SDK_BUILD_EXAMPLES=OFF
+
+          # 4. x64 Shared Library (.dll)
+          cmake -S "${{ github.workspace }}" -B "${{ github.workspace }}/build-x64-shared" `
+            -G "Visual Studio 17 2022" -A x64 -T host=x64 `
+            -DBUILD_SHARED_LIBS=ON -DWOTLK_SDK_BUILD_EXAMPLES=OFF
+
+      - name: Build All Architectures & Configurations
+        shell: pwsh
         run: |
-          $tag = "${{ github.event.release.tag_name }}"
-          if (-not $tag) { $tag = "${{ steps.find_tag.outputs.tag }}" }
+          cmake --build "${{ github.workspace }}/build-x86-static" --config ${{ env.BUILD_TYPE }} --parallel
+          cmake --build "${{ github.workspace }}/build-x86-shared" --config ${{ env.BUILD_TYPE }} --parallel
+          cmake --build "${{ github.workspace }}/build-x64-static" --config ${{ env.BUILD_TYPE }} --parallel
+          cmake --build "${{ github.workspace }}/build-x64-shared" --config ${{ env.BUILD_TYPE }} --parallel
 
-          $staging = "${{ github.workspace }}\staging"
-          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+      - name: Package SDK Distribution Archive
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.tag_info.outputs.TAG }}"
+          $staging = "${{ github.workspace }}/staging"
+          New-Item -ItemType Directory -Force -Path "$staging/include" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/x86" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/lib/x64" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/bin/x86" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$staging/bin/x64" | Out-Null
 
-          Copy-Item "${{ github.workspace }}\build\bin\Release\WotlkSDK.dll" "$staging\"
-          Copy-Item "${{ github.workspace }}\licenses" "$staging\licenses" -Recurse
+          # Copy Public Headers
+          Copy-Item "${{ github.workspace }}/include/*" "$staging/include" -Recurse -Force
+          Copy-Item "${{ github.workspace }}/tools/HOOK-KIT" "$staging/include/HOOK-KIT" -Recurse -Force
 
-          Compress-Archive -Path "$staging\*" -DestinationPath "${{ github.workspace }}\WotlkSDK_$tag.zip" -Force
-          
-      - name: Upload Zip to GitHub Release
+          # Copy Libraries (.lib)
+          if (Test-Path "${{ github.workspace }}/build-x86-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x86-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib" "$staging/lib/x86/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x64-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib") {
+            Copy-Item "${{ github.workspace }}/build-x64-static/bin/${{ env.BUILD_TYPE }}/WotlkSDK.lib" "$staging/lib/x64/" -Force
+          }
+
+          # Copy Binaries (.dll) & Sample Mods
+          if (Test-Path "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll") {
+            Copy-Item "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll" "$staging/bin/x86/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleMod.dll") {
+            Copy-Item "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleMod.dll" "$staging/bin/x86/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleModC.dll") {
+            Copy-Item "${{ github.workspace }}/build-x86-shared/bin/${{ env.BUILD_TYPE }}/SampleModC.dll" "$staging/bin/x86/" -Force
+          }
+          if (Test-Path "${{ github.workspace }}/build-x64-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll") {
+            Copy-Item "${{ github.workspace }}/build-x64-shared/bin/${{ env.BUILD_TYPE }}/WotlkSDK.dll" "$staging/bin/x64/" -Force
+          }
+
+          # Copy Documentation, Manifest & Licenses
+          Copy-Item "${{ github.workspace }}/README.md" "$staging/" -Force
+          Copy-Item "${{ github.workspace }}/LICENSE" "$staging/" -Force
+          Copy-Item "${{ github.workspace }}/vcpkg.json" "$staging/" -Force
+          Copy-Item "${{ github.workspace }}/licenses" "$staging/licenses" -Recurse -Force
+
+          # Create Distribution Zip Archive
+          $zipName = "WotlkSDK_$tag.zip"
+          Compress-Archive -Path "$staging/*" -DestinationPath "${{ github.workspace }}/$zipName" -Force
+          Write-Host "Created release archive: $zipName"
+
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ github.workspace }}/WotlkSDK_*.zip
-          tag_name: ${{ github.event.release.tag_name || steps.find_tag.outputs.tag }}
+          tag_name: ${{ steps.tag_info.outputs.TAG }}
+          name: WotlkSDK ${{ steps.tag_info.outputs.TAG }}
+          body: |
+            ## WotlkSDK Release ${{ steps.tag_info.outputs.TAG }}
+            Software Development Kit for World of Warcraft 3.3.5a (Build 12340).
+
+            ### Included Artifacts
+            - **Static Libraries (`WotlkSDK.lib`)**: x86 (Win32) & x64
+            - **Shared DLLs (`WotlkSDK.dll`)**: x86 (Win32) & x64
+            - **Sample Mods**: `SampleMod.dll` (C++23) & `SampleModC.dll` (Pure C)
+            - **Headers**: Complete `<WOTLK-SDK/wotlkcpp.h>` and `<WOTLK-SDK/wotlkc.h>` APIs
+            - **Subsystems**: Threaded Discord Social SDK, HOOK-KIT, Auto-Login, and engine registries.
+          draft: false
+          prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
